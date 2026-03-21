@@ -1,0 +1,53 @@
+cmake_minimum_required(VERSION 3.15)
+project(Playback)
+
+set(CMAKE_CXX_STANDARD 20)
+
+# dùng pkg-config
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(FFMPEG REQUIRED
+    libavformat
+    libavcodec
+    libavutil
+    libswscale
+)
+
+pkg_check_modules(SDL2 REQUIRED sdl2)
+
+include_directories(
+    ${FFMPEG_INCLUDE_DIRS}
+    ${SDL2_INCLUDE_DIRS}
+)
+
+link_directories(
+    ${FFMPEG_LIBRARY_DIRS}
+    ${SDL2_LIBRARY_DIRS}
+)
+
+set(SOURCES 
+    main.cpp 
+    PlaybackPlayer.cpp 
+    PlaybackDemux.cpp
+    decode/PlaybackDecode.cpp
+    decode/PlaybackDecodeAudio.cpp
+    decode/PlaybackDecodeVideo.cpp
+    output/PlaybackOutput.cpp
+    output/PlaybackOutputAudio.cpp
+    output/PlaybackOutputVideo.cpp
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+# example: #include "decoder.h" without "decode/decoder.h"
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/decode
+    ${CMAKE_CURRENT_SOURCE_DIR}/output
+)
+
+target_link_libraries(${PROJECT_NAME}
+    ${FFMPEG_LIBRARIES}
+    ${SDL2_LIBRARIES}
+)
