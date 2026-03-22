@@ -35,6 +35,7 @@ set(SOURCES
     output/PlaybackOutput.cpp
     output/PlaybackOutputAudio.cpp
     output/PlaybackOutputVideo.cpp
+    window/PlaybackWindow.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -45,6 +46,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/decode
     ${CMAKE_CURRENT_SOURCE_DIR}/output
+    ${CMAKE_CURRENT_SOURCE_DIR}/window
 )
 
 target_link_libraries(${PROJECT_NAME}

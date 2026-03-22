@@ -11,7 +11,7 @@ extern "C" {
 }
 
 #include <SDL2/SDL.h>
-
+#include "PlaybackDemux.h"
 
 class PlaybackPlayer {
 public:
@@ -30,13 +30,11 @@ public:
 
 private:
     void inputLoop(); // thread function to check key presses
-    void HandlePlayback(); // thread function to handle video playback
     
     std::thread inputThread;
-    std::thread mainThread;
     std::atomic<bool> running;
     std::atomic<char> keyPressed;
-    
+    PlaybackDemux demux;
 };
 
 

@@ -1,6 +1,7 @@
 #include "PlaybackPacket.h"
 
-void push(AVPacket* pkt) {
+void push(AVPacket* pkt)
+{
     std::unique_lock<std::mutex> lock(mtx);
 
     AVPacket packet;
@@ -11,7 +12,8 @@ void push(AVPacket* pkt) {
     cv.notify_one();
 }
 
-bool pop(AVPacket* pkt) {
+bool pop(AVPacket* pkt)
+{
     std::unique_lock<std::mutex> lock(mtx);
 
     cv.wait(lock, [this]() { return !queue.empty(); });

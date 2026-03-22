@@ -1,6 +1,7 @@
 #include "PlaybackFrame.h"
 
-void push(AVFrame* pkt) {
+void push(AVFrame* pkt)
+{
     std::unique_lock<std::mutex> lock(mtx);
 
     AVFrame frame;
@@ -11,7 +12,8 @@ void push(AVFrame* pkt) {
     cv.notify_one();
 }
 
-bool pop(AVFrame* pkt) {
+bool pop(AVFrame* pkt)
+{
     std::unique_lock<std::mutex> lock(mtx);
 
     cv.wait(lock, [this]() { return !queue.empty(); });
