@@ -1,3 +1,6 @@
+#ifndef UTILS_LOG_H
+#define UTILS_LOG_H
+
 #include <format>
 #include <iostream>
 class UtilsLog {
@@ -76,3 +79,5 @@ private:
     // | Trắng      | `\033[37m` |
 
 };
+
+#endif // UTILS_LOG_H

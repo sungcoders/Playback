@@ -1,21 +1,26 @@
 #ifndef PLAYBACKDEMUX_H
 #define PLAYBACKDEMUX_H
 
-#include "PlaybackPacket.h"
 extern "C" {
 #include <libavformat/avformat.h>
 // #include <libavcodec/avcodec.h>
 }
 
+#include "PlaybackPacket.h"
+#include "PlaybackDecodeVideo.h"
+#include <unistd.h>
+
 class PlaybackDemux
 {
 public:
-    PlaybackDemux();
-    ~PlaybackDemux();
+    PlaybackDemux() = default;
+    ~PlaybackDemux() = default;
 
     void Start();
     void Init(const std::string& filename);
     void Demux();
+
+    void PushPacket(AVPacket* pkt);
 
 private:
     AVFormatContext* fmtCtx = nullptr;
@@ -28,6 +33,9 @@ private:
     std::thread demuxThread;
     int width = -1;
     int height = -1;
+    std::shared_ptr<PlaybackPacket> packetVideoQueue = std::make_shared<PlaybackPacket>();
+    std::shared_ptr<PlaybackPacket> packetAudioQueue = std::make_shared<PlaybackPacket>();
+    std::unique_ptr<PlaybackDecodeVideo> decodeVideo = std::make_unique<PlaybackDecodeVideo>(packetVideoQueue);
 };
 
 #endif // PLAYBACKDEMUX_H

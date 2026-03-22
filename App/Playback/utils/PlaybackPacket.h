@@ -9,14 +9,18 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+#include "UtilsLog.h"
+
 class PlaybackPacket
 {
 public:
-    PlaybackPacket();
-    ~PlaybackPacket();
+    PlaybackPacket() = default;
+    ~PlaybackPacket() = default;
 
     void push(AVPacket* pkt);
-    bool pop(AVPacket* pkt);
+    void pop(AVPacket* pkt);
+
+    int size();
 
 private:
     std::queue<AVPacket> queue;

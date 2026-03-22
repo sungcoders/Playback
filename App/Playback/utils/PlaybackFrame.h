@@ -9,14 +9,18 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+#include "UtilsLog.h"
+
 class PlaybackFrame
 {
 public:
-    PlaybackFrame();
-    ~PlaybackFrame();
+    PlaybackFrame() = default;
+    ~PlaybackFrame() = default;
 
     void push(AVFrame* pkt);
-    bool pop(AVFrame* pkt);
+    void pop(AVFrame* pkt);
+
+    int size();
 
 private:
     std::queue<AVFrame> queue;

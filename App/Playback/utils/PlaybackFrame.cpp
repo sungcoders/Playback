@@ -1,6 +1,6 @@
 #include "PlaybackFrame.h"
 
-void push(AVFrame* pkt)
+void PlaybackFrame::push(AVFrame* pkt)
 {
     std::unique_lock<std::mutex> lock(mtx);
 
@@ -8,20 +8,31 @@ void push(AVFrame* pkt)
     av_frame_move_ref(&frame, pkt);
 
     queue.push(frame);
-
+    UtilsLog::warning("Push frame: {} size {}", frame.pts, queue.size());
     cv.notify_one();
 }
 
-bool pop(AVFrame* pkt)
+void PlaybackFrame::pop(AVFrame* pkt)
 {
     std::unique_lock<std::mutex> lock(mtx);
 
-    cv.wait(lock, [this]() { return !queue.empty(); });
+    cv.wait(lock, [this]()
+    {
+        UtilsLog::warning("Waiting for frame, current queue size: {}", queue.size());
+        return !queue.empty();
+    });
 
     AVFrame frame = queue.front();
     queue.pop();
 
     av_frame_move_ref(pkt, &frame);
 
-    return true;
+    return;
+}
+
+
+int PlaybackFrame::size()
+{
+    std::unique_lock<std::mutex> lock(mtx);
+    return queue.size();
 }
