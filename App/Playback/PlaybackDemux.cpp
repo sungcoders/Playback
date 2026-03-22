@@ -1,6 +1,7 @@
 #include "PlaybackDemux.h"
 #include <iostream>
 #include "PlaybackWindow.h"
+#include "UtilsLog.h"
 
 PlaybackDemux::PlaybackDemux()
 {
@@ -14,7 +15,7 @@ PlaybackDemux::~PlaybackDemux()
 }
 void PlaybackDemux::Start()
 {
-    std::cout << "Starting demuxing process...\n";
+    UtilsLog::debug("Starting demuxing process...");
     demuxThread = std::thread(&PlaybackDemux::Demux, this);
 }
 
@@ -23,7 +24,7 @@ void PlaybackDemux::Init(const std::string& filename)
     avformat_network_init();
     if (avformat_open_input(&fmtCtx, filename.c_str(), nullptr, nullptr) != 0)
     {
-        std::cout << "Không mở được file\n";
+        UtilsLog::error("Không mở được file");
         return;
     }
     avformat_find_stream_info(fmtCtx, nullptr);
@@ -38,7 +39,7 @@ void PlaybackDemux::Init(const std::string& filename)
     }
     
     if (videoStream == -1) {
-        std::cout << "Không tìm thấy video stream\n";
+        UtilsLog::error("Không tìm thấy video stream");
         return;
     }
 
@@ -49,9 +50,10 @@ void PlaybackDemux::Init(const std::string& filename)
     avcodec_open2(codecCtx, codec, nullptr);
     width = codecCtx->width;
     height = codecCtx->height;
-    std::cout << "Video stream index: " << videoStream << "\n";
-    std::cout << "Codec ID: " << codecPar->codec_id << "\n";
-    std::cout << "Video resolution: " << width << "x" << height << "\n";
+    UtilsLog::debug("Codec name: {}", codec->name);
+    UtilsLog::infof("Codec id: %d", codecPar->codec_id);
+    UtilsLog::info("Video resolution: {}x{}", width, height);
+    UtilsLog::info("Video resolution: {}x{}", width, height);
 }
 
 void PlaybackDemux::Demux()

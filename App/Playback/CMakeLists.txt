@@ -1,9 +1,5 @@
-cmake_minimum_required(VERSION 3.15)
 project(Playback)
 
-set(CMAKE_CXX_STANDARD 20)
-
-# dùng pkg-config
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(FFMPEG REQUIRED
@@ -40,7 +36,6 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# example: #include "decoder.h" without "decode/decoder.h"
 target_include_directories(${PROJECT_NAME} PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/utils
@@ -52,4 +47,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME}
     ${FFMPEG_LIBRARIES}
     ${SDL2_LIBRARIES}
+    Utils
 )
