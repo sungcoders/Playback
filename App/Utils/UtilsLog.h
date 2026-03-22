@@ -1,4 +1,5 @@
 #include <format>
+#include <iostream>
 class UtilsLog {
 public:
 
@@ -16,25 +17,9 @@ public:
     }
 
     template<typename... Args>
-    static void infof(const char* fmt, Args... args)
-    {
-        char buffer[1024];
-        std::snprintf(buffer, sizeof(buffer), fmt, args...);
-        print("INFO", "\033[37m", buffer);
-    }
-
-    template<typename... Args>
     static void debug(std::format_string<Args...> fmt, Args&&... args)
     {
         print(LogLevel::DEBUG, std::format(fmt, std::forward<Args>(args)...));
-    }
-
-    template<typename... Args>
-    static void debugf(const char* fmt, Args... args)
-    {
-        char buffer[1024];
-        std::snprintf(buffer, sizeof(buffer), fmt, args...);
-        print("DEBUG", "\033[36m", buffer);
     }
 
     template<typename... Args>
@@ -44,39 +29,12 @@ public:
     }
 
     template<typename... Args>
-    static void warningf(const char* fmt, Args... args)
-    {
-        char buffer[1024];
-        std::snprintf(buffer, sizeof(buffer), fmt, args...);
-        print("WARNING", "\033[33m", buffer);
-    }
-
-    template<typename... Args>
     static void error(std::format_string<Args...> fmt, Args&&... args)
     {
         print(LogLevel::ERR, std::format(fmt, std::forward<Args>(args)...));
     }
 
-    template<typename... Args>
-    static void errorf(const char* fmt, Args... args)
-    {
-        char buffer[1024];
-        std::snprintf(buffer, sizeof(buffer), fmt, args...);
-        print("ERROR", "\033[31m", buffer);
-    }
-
 private:
-    static void print(const std::string& level,
-                      const std::string& color,
-                      const std::string& msg)
-    {
-        std::cout << color
-                  << "[" << level << "] "
-                  << msg
-                  << "\033[0m"
-                  << std::endl;
-    }
-
     static void print(LogLevel level, const std::string& msg)
     {
         std::cout << levelToColor(level)

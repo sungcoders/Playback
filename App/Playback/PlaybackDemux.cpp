@@ -1,5 +1,4 @@
 #include "PlaybackDemux.h"
-#include <iostream>
 #include "PlaybackWindow.h"
 #include "UtilsLog.h"
 
@@ -51,7 +50,7 @@ void PlaybackDemux::Init(const std::string& filename)
     width = codecCtx->width;
     height = codecCtx->height;
     UtilsLog::debug("Codec name: {}", codec->name);
-    UtilsLog::infof("Codec id: %d", codecPar->codec_id);
+    UtilsLog::info("Codec id: {}", static_cast<int>(codecPar->codec_id));
     UtilsLog::info("Video resolution: {}x{}", width, height);
     UtilsLog::info("Video resolution: {}x{}", width, height);
 }
