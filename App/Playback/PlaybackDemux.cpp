@@ -38,64 +38,27 @@ void PlaybackDemux::Init(const std::string& filename)
     avcodec_open2(codecCtx, codec, nullptr);
     width = codecCtx->width;
     height = codecCtx->height;
-    UtilsLog::debug("Codec name: {}", codec->name);
-    UtilsLog::info("Codec id: {}", static_cast<int>(codecPar->codec_id));
-    UtilsLog::info("Video resolution: {}x{}", width, height);
-    UtilsLog::info("Video resolution: {}x{}", width, height);
+    av_dump_format(fmtCtx, 0, filename.c_str(), 0);
 }
 
 void PlaybackDemux::Demux()
 {
     Init("video.mp4");
-    // PlaybackWindow win;
-    // win.createWindow(width, height);
     PlaybackDecodeVideo decodeVideo(packetVideoQueue);
     decodeVideo.Init(codecCtx, fmtCtx);
 
     while (av_read_frame(fmtCtx, packet) >= 0)
     {
-        PushPacket(packet);
-        // sleep(3);
-        if(packetVideoQueue->size() < 2)
+        if (packet->stream_index == videoStream)
         {
-            // UtilsLog::info("Video packet queue size: {}", packetVideoQueue->size());
-            continue;
+            UtilsLog::debug("[{}] push packet: {} size {}", packet->stream_index, av_q2d(fmtCtx->streams[packet->stream_index]->time_base) * packet->pts, packetVideoQueue->size());
+            packetVideoQueue->push(packet);
+            av_packet_unref(packet);
         }
-
-        // if (packet->stream_index == videoStream)
-        // {
-            // AVPacket* packetV = av_packet_alloc();
-            // packetVideoQueue->pop(packetV);
-            // avcodec_send_packet(codecCtx, packetV);
-            // while (avcodec_receive_frame(codecCtx, frame) == 0)
-            // {
-                // UtilsLog::error("[{}] decode frame: {}", packetV->stream_index, frame->pts * av_q2d(fmtCtx->streams[videoStream]->time_base));
-                // win.renderFrame(frame);
-                // win.delay(33); // ~30 FPS (demo)
-                sleep(1);
-            // }
-        // }
-        // av_packet_unref(packetV);
-        av_packet_unref(packet);
     }
-    av_frame_free(&frame);
+
     av_packet_free(&packet);
     avcodec_free_context(&codecCtx);
     avformat_close_input(&fmtCtx);
+    UtilsLog::error("Demuxing process finished");
 }
-
-void PlaybackDemux::PushPacket(AVPacket* pkt)
-{
-    if(packet->stream_index == videoStream)
-    {
-        packetVideoQueue->push(pkt);
-    }
-    else
-    {
-        // UtilsLog::warning("[{}] push packet: {}", packet->stream_index, pkt->pts * av_q2d(fmtCtx->streams[videoStream]->time_base));
-        // packetAudioQueue->push(pkt);
-        // UtilsLog::warning("[{}] packet queue size: {}", packet->stream_index, packetAudioQueue->size());
-        // UtilsLog::warning("push packet");
-    }
-}
-

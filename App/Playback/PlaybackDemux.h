@@ -20,12 +20,9 @@ public:
     void Init(const std::string& filename);
     void Demux();
 
-    void PushPacket(AVPacket* pkt);
-
 private:
     AVFormatContext* fmtCtx = nullptr;
     AVPacket* packet = av_packet_alloc();
-    AVFrame* frame = av_frame_alloc();
     int videoStream = -1;
     AVCodecContext* codecCtx = nullptr;
     AVCodecParameters* codecPar = nullptr;

@@ -11,34 +11,47 @@ void PlaybackDecodeVideo::Init(AVCodecContext* codecCtx, AVFormatContext* fmtCtx
 
 void PlaybackDecodeVideo::Decode()
 {
-    AVPacket* packetV = new AVPacket();
+    AVPacket* packet = av_packet_alloc();
+    AVFrame* frame = av_frame_alloc();
+
+    outputVideo->Init();
+
     while (true)
     {
-        sleep(5);
-        m_pCPacket->pop(packetV);
-    //     if (packetV->stream_index == -1) {
-    //         UtilsLog::debug("End of video stream");
-    //         break;
-    //     }
-    //     // if (packetV->stream_index == videoStream)
-    //     // {
-            while (avcodec_send_packet(codecCtx, packetV) == 0)
-            {
-                sleep(1);
-                AVFrame* frame = av_frame_alloc();
-                if (avcodec_receive_frame(codecCtx, frame) == 0)
-                {
-                    UtilsLog::warning("[{}] decode frame: {}", packetV->stream_index, frame->pts * av_q2d(fmtCtx->streams[packetV->stream_index]->time_base));
-                    m_pCFrame->push(frame);
-                }
-                av_frame_free(&frame);
-            }
-        // }
-        av_packet_unref(packetV);
+        m_pCPacket->pop(packet);
+        int ret = avcodec_send_packet(codecCtx, packet);
+        if (ret < 0)
+        {
+            av_packet_unref(packet);
+            continue;
+        }
+
+        while (ret >= 0)
+        {
+            ret = avcodec_receive_frame(codecCtx, frame);
+
+            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+                break;
+
+            if (ret < 0)
+                break;
+
+            UtilsLog::warning("[{}] decode frame: {}", packet->stream_index, frame->pts * av_q2d(fmtCtx->streams[packet->stream_index]->time_base));
+            m_pCFrame->push(frame);
+            frame = av_frame_alloc();
+        }
+
+        av_packet_unref(packet);
     }
-    // av_packet_free(&packetV);
-    // av_frame_free(&frame);
-    // av_packet_free(&packet); 
-    // avcodec_free_context(&codecCtx);
-    // avformat_close_input(&fmtCtx);
+
+    // flush decoder
+    avcodec_send_packet(codecCtx, nullptr);
+    while (avcodec_receive_frame(codecCtx, frame) == 0)
+    {
+        m_pCFrame->push(frame);
+        frame = av_frame_alloc();
+    }
+
+    av_packet_free(&packet);
+    av_frame_free(&frame);
 }

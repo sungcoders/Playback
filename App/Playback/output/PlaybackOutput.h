@@ -2,15 +2,19 @@
 #define PLAYBACKOUTPUT_H
 
 #include "PlaybackFrame.h"
+#include "PlaybackPacket.h"
+#include <unistd.h>
+#include "PlaybackWindow.h"
 
 class PlaybackOutput
 {
 public:
-    PlaybackOutput();
-    ~PlaybackOutput();
+    PlaybackOutput(std::shared_ptr<PlaybackFrame>& f) : m_pCFrame(f) {};
+    ~PlaybackOutput() = default;
 
-private:
-    /* data */
+protected:
+    PlaybackWindow win;
+    std::shared_ptr<PlaybackFrame> m_pCFrame = std::make_shared<PlaybackFrame>();
 
 };
 

@@ -14,7 +14,7 @@ extern "C" {
 class PlaybackFrame
 {
 public:
-    PlaybackFrame() = default;
+    PlaybackFrame();
     ~PlaybackFrame() = default;
 
     void push(AVFrame* pkt);
@@ -23,8 +23,8 @@ public:
     int size();
 
 private:
-    std::queue<AVFrame> queue;
-    std::mutex mtx;
+    std::queue<AVFrame*> queue;
+    std::mutex m_mutex;
     std::condition_variable cv;
 
 };

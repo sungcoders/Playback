@@ -2,7 +2,13 @@
 #include <iostream>
 #include <windows.h>
 
-PlaybackPlayer::PlaybackPlayer() : running(false), keyPressed(0) {}
+PlaybackPlayer::PlaybackPlayer()
+: running(false)
+, keyPressed(0)
+, demuxPtr(nullptr)
+{
+    
+}
 
 PlaybackPlayer::~PlaybackPlayer()
 {
@@ -12,17 +18,20 @@ PlaybackPlayer::~PlaybackPlayer()
 void PlaybackPlayer::start()
 {
     running = true;
-    // inputThread = std::thread(&PlaybackPlayer::inputLoop, this);
-    demux.Start();
+    demuxPtr = std::make_unique<PlaybackDemux>();
+    if (demuxPtr != nullptr) {
+        demuxPtr->Start();
+    }
+    inputThread = std::thread(&PlaybackPlayer::inputLoop, this);
     std::cout << "PlaybackPlayer started. Press 'Q' to quit.\n";
 }
 
 void PlaybackPlayer::stop()
 {
     running = false;
-    // if (inputThread.joinable()) {
-    //     inputThread.join();
-    // }
+    if (inputThread.joinable()) {
+        inputThread.join();
+    }
 }
 
 void PlaybackPlayer::inputLoop()
@@ -31,7 +40,7 @@ void PlaybackPlayer::inputLoop()
         for (int i = 0; i < 256; i++) {
             if (GetAsyncKeyState(i) & 0x8000) {
                 keyPressed = (char)i;
-                Sleep(100);
+                Sleep(200);
             }
         }
     }

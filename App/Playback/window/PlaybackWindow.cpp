@@ -1,5 +1,4 @@
 #include "PlaybackWindow.h"
-#include <iostream>
 
 PlaybackWindow::PlaybackWindow()
 {
@@ -7,13 +6,13 @@ PlaybackWindow::PlaybackWindow()
 
 PlaybackWindow::~PlaybackWindow()
 {
-    std::cout << "Destroying PlaybackWindow...\n";
+    UtilsLog::info("Destroying PlaybackWindow...\n");
     destroyWindow();
 }
 
 void PlaybackWindow::createWindow(int width, int height)
 {
-    // Code để tạo cửa sổ phát video
+    UtilsLog::info("Creating window with resolution: {}x{}", width, height);
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_CreateWindow(
         "FFmpeg Player",
@@ -79,7 +78,7 @@ void PlaybackWindow::WindowEvent()
     {
         if (event.type == SDL_QUIT)
         {
-            std::cout << "Quit event received, exiting...\n";
+            UtilsLog::info("Quit event received, exiting...");
             destroyWindow();
             return;
         }
@@ -87,7 +86,7 @@ void PlaybackWindow::WindowEvent()
         {
             if (event.key.keysym.sym == SDLK_q)
             {
-                std::cout << "Q key pressed, exiting...\n";
+                UtilsLog::info("Q key pressed, exiting...");
                 return;
             }
         }

@@ -14,7 +14,7 @@ extern "C" {
 class PlaybackPacket
 {
 public:
-    PlaybackPacket() = default;
+    PlaybackPacket();
     ~PlaybackPacket() = default;
 
     void push(AVPacket* pkt);
@@ -23,8 +23,8 @@ public:
     int size();
 
 private:
-    std::queue<AVPacket> queue;
-    std::mutex mtx;
+    std::queue<AVPacket*> queue;
+    std::mutex m_mutex;
     std::condition_variable cv;
 
 };

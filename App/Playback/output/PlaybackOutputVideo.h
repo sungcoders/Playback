@@ -6,11 +6,14 @@
 class PlaybackOutputVideo : public PlaybackOutput
 {
 public:
-    PlaybackOutputVideo();
-    ~PlaybackOutputVideo();
+    PlaybackOutputVideo(std::shared_ptr<PlaybackFrame>& f) : PlaybackOutput(f) {};
+    ~PlaybackOutputVideo() = default;
+
+    void Init();
+    void Output();
 
 private:
-    /* data */
+    std::thread outputThread;
 
 };
 
