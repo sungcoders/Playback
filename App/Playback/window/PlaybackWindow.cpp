@@ -6,13 +6,13 @@ PlaybackWindow::PlaybackWindow()
 
 PlaybackWindow::~PlaybackWindow()
 {
-    UtilsLog::info("Destroying PlaybackWindow...\n");
+    LOGI("Destroying PlaybackWindow...\n");
     destroyWindow();
 }
 
 void PlaybackWindow::createWindow(int width, int height)
 {
-    UtilsLog::info("Creating window with resolution: {}x{}", width, height);
+    LOGI("Creating window with resolution: {}x{}", width, height);
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_CreateWindow(
         "FFmpeg Player",
@@ -78,7 +78,7 @@ void PlaybackWindow::WindowEvent()
     {
         if (event.type == SDL_QUIT)
         {
-            UtilsLog::info("Quit event received, exiting...");
+            LOGI("Quit event received, exiting...");
             destroyWindow();
             return;
         }
@@ -86,7 +86,7 @@ void PlaybackWindow::WindowEvent()
         {
             if (event.key.keysym.sym == SDLK_q)
             {
-                UtilsLog::info("Q key pressed, exiting...");
+                LOGI("Q key pressed, exiting...");
                 return;
             }
         }

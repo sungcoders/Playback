@@ -11,7 +11,7 @@ void PlaybackPacket::push(AVPacket* pkt)
 {
     AVPacket* packet = av_packet_alloc();
     if (!packet) {
-        UtilsLog::error("Failed to allocate AVPacket");
+        LOGE("Failed to allocate AVPacket");
         return;
     }
 
@@ -30,7 +30,7 @@ void PlaybackPacket::pop(AVPacket* pkt)
 
     cv.wait(lock, [this]()
     {
-        // UtilsLog::debug("Waiting for packet, current queue size: {}", queue.size());
+        // LOGD("Waiting for packet, current queue size: {}", queue.size());
         return !queue.empty();
     });
 

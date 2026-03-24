@@ -3,7 +3,7 @@
 
 void PlaybackDemux::Start()
 {
-    UtilsLog::debug("Starting demuxing process...");
+    LOGD("Starting demuxing process...");
     demuxThread = std::thread(&PlaybackDemux::Demux, this);
 }
 
@@ -12,7 +12,7 @@ void PlaybackDemux::Init(const std::string& filename)
     avformat_network_init();
     if (avformat_open_input(&fmtCtx, filename.c_str(), nullptr, nullptr) != 0)
     {
-        UtilsLog::error("Không mở được file");
+        LOGE("Không mở được file");
         return;
     }
     avformat_find_stream_info(fmtCtx, nullptr);
@@ -27,7 +27,7 @@ void PlaybackDemux::Init(const std::string& filename)
     }
     
     if (videoStream == -1) {
-        UtilsLog::error("Không tìm thấy video stream");
+        LOGE("Không tìm thấy video stream");
         return;
     }
 
@@ -51,7 +51,7 @@ void PlaybackDemux::Demux()
     {
         if (packet->stream_index == videoStream)
         {
-            UtilsLog::debug("[{}] push packet: {} size {}", packet->stream_index, av_q2d(fmtCtx->streams[packet->stream_index]->time_base) * packet->pts, packetVideoQueue->size());
+            LOGD("[{}] push packet: {} size {}", packet->stream_index, av_q2d(fmtCtx->streams[packet->stream_index]->time_base) * packet->pts, packetVideoQueue->size());
             packetVideoQueue->push(packet);
             av_packet_unref(packet);
         }
@@ -60,5 +60,5 @@ void PlaybackDemux::Demux()
     av_packet_free(&packet);
     avcodec_free_context(&codecCtx);
     avformat_close_input(&fmtCtx);
-    UtilsLog::error("Demuxing process finished");
+    LOGE("Demuxing process finished");
 }

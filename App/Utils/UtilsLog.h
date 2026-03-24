@@ -3,9 +3,13 @@
 
 #include <format>
 #include <iostream>
+#include <mutex>
+#include <string>
+
 class UtilsLog {
 public:
 
+    // LOG LEVELS
     enum class LogLevel {
         DEBUG,
         INFO,
@@ -13,71 +17,68 @@ public:
         ERR
     };
 
+    // LOG FUNCTION
     template<typename... Args>
-    static void info(std::format_string<Args...> fmt, Args&&... args)
+    static void log(LogLevel level,
+                    const char* file,
+                    int line,
+                    const char* func,
+                    std::format_string<Args...> fmt,
+                    Args&&... args)
     {
-        print(LogLevel::INFO, std::format(fmt, std::forward<Args>(args)...));
-    }
-
-    template<typename... Args>
-    static void debug(std::format_string<Args...> fmt, Args&&... args)
-    {
-        print(LogLevel::DEBUG, std::format(fmt, std::forward<Args>(args)...));
-    }
-
-    template<typename... Args>
-    static void warning(std::format_string<Args...> fmt, Args&&... args)
-    {
-        print(LogLevel::WARN, std::format(fmt, std::forward<Args>(args)...));
-    }
-
-    template<typename... Args>
-    static void error(std::format_string<Args...> fmt, Args&&... args)
-    {
-        print(LogLevel::ERR, std::format(fmt, std::forward<Args>(args)...));
+        write(level, file, line, func, std::format(fmt, std::forward<Args>(args)...));
     }
 
 private:
-    static void print(LogLevel level, const std::string& msg)
+    // MUTEX
+    static inline std::mutex mtx;
+
+    // WRITE FUNCTION
+    static void write(LogLevel level,
+                      const char* file,
+                      int line,
+                      const char* func,
+                      const std::string& msg)
     {
+        std::lock_guard<std::mutex> lock(mtx);
         std::cout << levelToColor(level)
-                << "[" << levelToString(level) << "] "
-                << msg
-                << "\033[0m"
-                << std::endl;
+                  << "[" << levelToString(level) << "] "
+                  << file << ":" << line
+                  << " (" << func << ") "
+                  << msg
+                  << "\033[0m"
+                  << std::endl;
     }
 
-    static const char* levelToColor(LogLevel level) {
+    // COLOR AND STRING CONVERSION
+    static const char* levelToColor(LogLevel level)
+    {
         switch (level) {
-            case LogLevel::DEBUG: return "\033[36m";
-            case LogLevel::INFO:  return "\033[37m";
-            case LogLevel::WARN:  return "\033[33m";
-            case LogLevel::ERR:   return "\033[31m";
+            case LogLevel::DEBUG: return "\033[36m"; // Cyan
+            case LogLevel::INFO:  return "\033[37m"; // White
+            case LogLevel::WARN:  return "\033[33m"; // Yellow
+            case LogLevel::ERR:   return "\033[31m"; // Red
             default:              return "\033[0m";
         }
     }
 
-    static const char* levelToString(LogLevel level) {
+    // LOG LEVEL TO STRING
+    static const char* levelToString(LogLevel level)
+    {
         switch (level) {
             case LogLevel::DEBUG: return "DEBUG";
             case LogLevel::INFO:  return "INFO";
-            case LogLevel::WARN:  return "WARNING";
+            case LogLevel::WARN:  return "WARN";
             case LogLevel::ERR:   return "ERROR";
             default:              return "LOG";
         }
     }
-
-    // | Màu        | Code       |
-    // | ---------- | ---------- |
-    // | Đen        | `\033[30m` |
-    // | Đỏ         | `\033[31m` |
-    // | Xanh lá    | `\033[32m` |
-    // | Vàng       | `\033[33m` |
-    // | Xanh dương | `\033[34m` |
-    // | Tím        | `\033[35m` |
-    // | Cyan       | `\033[36m` |
-    // | Trắng      | `\033[37m` |
-
 };
+
+// MACRO WRAPPER
+#define LOGD(fmt, ...) UtilsLog::log(UtilsLog::LogLevel::DEBUG, __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define LOGI(fmt, ...) UtilsLog::log(UtilsLog::LogLevel::INFO,  __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define LOGW(fmt, ...) UtilsLog::log(UtilsLog::LogLevel::WARN,  __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+#define LOGE(fmt, ...) UtilsLog::log(UtilsLog::LogLevel::ERR,   __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
 
 #endif // UTILS_LOG_H
