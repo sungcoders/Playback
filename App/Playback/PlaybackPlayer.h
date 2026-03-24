@@ -34,7 +34,7 @@ private:
     std::thread inputThread;
     std::atomic<bool> running;
     std::atomic<char> keyPressed;
-    std::unique_ptr<PlaybackDemux> demuxPtr;
+    std::unique_ptr<PlaybackDemux> m_pCdemux;
 };
 
 

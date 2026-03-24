@@ -43,16 +43,15 @@ void PlaybackDemux::Init(const std::string& filename)
 
 void PlaybackDemux::Demux()
 {
-    Init("video.mp4");
-    PlaybackDecodeVideo decodeVideo(packetVideoQueue);
-    decodeVideo.Init(codecCtx, fmtCtx);
+    m_pCdecode->Init(codecCtx, fmtCtx);
+    m_pCdecode->Start();
 
     while (av_read_frame(fmtCtx, packet) >= 0)
     {
         if (packet->stream_index == videoStream)
         {
-            LOGD("[{}] push packet: {} size {}", packet->stream_index, av_q2d(fmtCtx->streams[packet->stream_index]->time_base) * packet->pts, packetVideoQueue->size());
-            packetVideoQueue->push(packet);
+            LOGD("[{}] push packet: {:.3f} size {}", packet->stream_index, av_q2d(fmtCtx->streams[packet->stream_index]->time_base) * packet->pts, m_pCpacketVideo->size());
+            m_pCpacketVideo->push(packet);
             av_packet_unref(packet);
         }
     }

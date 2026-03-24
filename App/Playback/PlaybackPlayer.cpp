@@ -5,7 +5,7 @@
 PlaybackPlayer::PlaybackPlayer()
 : running(false)
 , keyPressed(0)
-, demuxPtr(nullptr)
+, m_pCdemux(nullptr)
 {
     
 }
@@ -17,11 +17,16 @@ PlaybackPlayer::~PlaybackPlayer()
 
 void PlaybackPlayer::start()
 {
-    running = true;
-    demuxPtr = std::make_unique<PlaybackDemux>();
-    if (demuxPtr != nullptr) {
-        demuxPtr->Start();
+    running = false;
+    m_pCdemux = std::make_unique<PlaybackDemux>();
+    if (m_pCdemux == nullptr)
+    {
+        LOGE("Failed to create PlaybackDemux");
+        return;
     }
+    m_pCdemux->Init("video.mp4");
+    m_pCdemux->Start();
+
     inputThread = std::thread(&PlaybackPlayer::inputLoop, this);
     std::cout << "PlaybackPlayer started. Press 'Q' to quit.\n";
 }

@@ -17,7 +17,7 @@ void PlaybackOutputVideo::Output()
         win.renderFrame(frameV);
         win.delay(33);
         av_frame_unref(frameV);
-        LOGE("Frame displayed, waiting for next frame...");
+        // LOGE("Frame displayed, waiting for next frame...");
     }
     av_frame_free(&frameV);
     LOGE("Video output thread finished");

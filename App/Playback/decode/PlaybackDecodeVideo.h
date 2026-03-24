@@ -12,7 +12,7 @@ public:
     ~PlaybackDecodeVideo() = default;
 
     void Init(AVCodecContext* codecCtx, AVFormatContext* fmtCtx);
-    void Decode();
+    void Decode() override;
 
 private:
     std::shared_ptr<PlaybackFrame> m_pCFrame = std::make_shared<PlaybackFrame>();

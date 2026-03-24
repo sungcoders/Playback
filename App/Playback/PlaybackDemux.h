@@ -30,9 +30,9 @@ private:
     std::thread demuxThread;
     int width = -1;
     int height = -1;
-    std::shared_ptr<PlaybackPacket> packetVideoQueue = std::make_shared<PlaybackPacket>();
-    std::shared_ptr<PlaybackPacket> packetAudioQueue = std::make_shared<PlaybackPacket>();
-    std::unique_ptr<PlaybackDecodeVideo> decodeVideo = std::make_unique<PlaybackDecodeVideo>(packetVideoQueue);
+    std::shared_ptr<PlaybackPacket> m_pCpacketVideo = std::make_shared<PlaybackPacket>();
+    std::shared_ptr<PlaybackPacket> m_pCpacketAudio = std::make_shared<PlaybackPacket>();
+    std::unique_ptr<PlaybackDecodeVideo> m_pCdecode = std::make_unique<PlaybackDecodeVideo>(m_pCpacketVideo);
 };
 
 #endif // PLAYBACKDEMUX_H
