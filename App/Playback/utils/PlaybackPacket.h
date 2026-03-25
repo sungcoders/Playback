@@ -4,6 +4,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <unistd.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -21,6 +22,8 @@ public:
     void pop(AVPacket* pkt);
 
     int size();
+
+    bool waitPacket();
 
 private:
     std::queue<AVPacket*> queue;

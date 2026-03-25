@@ -10,6 +10,7 @@ public:
     ~PlaybackOutputVideo() = default;
 
     void Init();
+    void Start();
     void Output();
 
 private:

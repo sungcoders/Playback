@@ -12,7 +12,7 @@ void PlaybackDemux::Init(const std::string& filename)
     avformat_network_init();
     if (avformat_open_input(&fmtCtx, filename.c_str(), nullptr, nullptr) != 0)
     {
-        LOGE("Không mở được file");
+        LOGE("can not open file {} {}", filename, errno);
         return;
     }
     avformat_find_stream_info(fmtCtx, nullptr);

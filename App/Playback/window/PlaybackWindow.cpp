@@ -35,6 +35,25 @@ void PlaybackWindow::createWindow(int width, int height)
 
 void PlaybackWindow::renderFrame(AVFrame* frame)
 {
+    if (!texture || frame->width != currentW || frame->height != currentH)
+    {
+        if (texture)
+        {
+            SDL_DestroyTexture(texture);
+        }
+
+        texture = SDL_CreateTexture(
+            renderer,
+            SDL_PIXELFORMAT_IYUV,
+            SDL_TEXTUREACCESS_STREAMING,
+            frame->width,
+            frame->height
+        );
+
+        currentW = frame->width;
+        currentH = frame->height;
+    }
+
     SDL_UpdateYUVTexture(
         texture,
         NULL,
@@ -45,15 +64,12 @@ void PlaybackWindow::renderFrame(AVFrame* frame)
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
-
-    WindowEvent();
 }
 
 void PlaybackWindow::delay(int ms)
 {
     SDL_Delay(ms);
 }
-
 
 void PlaybackWindow::destroyWindow()
 {
@@ -76,10 +92,10 @@ void PlaybackWindow::WindowEvent()
 {
     while (SDL_PollEvent(&event))
     {
+        LOGI("-------------------- Received event: {} --------------------", event.type);
         if (event.type == SDL_QUIT)
         {
             LOGI("Quit event received, exiting...");
-            destroyWindow();
             return;
         }
         if (event.type == SDL_KEYDOWN)

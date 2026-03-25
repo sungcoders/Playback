@@ -16,9 +16,11 @@ void PlaybackDecodeVideo::Decode()
     AVFrame* frame = av_frame_alloc();
 
     outputVideo->Init();
-
+    outputVideo->Start();
+    
     while (true)
     {
+        FrameInfo sFrame = {};
         m_pCPacket->pop(packet);
         int ret = avcodec_send_packet(codecCtx, packet);
         if (ret < 0)
@@ -34,9 +36,14 @@ void PlaybackDecodeVideo::Decode()
             {
                 break;
             }
-
-            LOGW("[{}] decode frame: {:.3f} size {}", packet->stream_index, frame->pts * av_q2d(fmtCtx->streams[packet->stream_index]->time_base), m_pCFrame->size());
-            m_pCFrame->push(frame);
+            
+            sFrame.frame = av_frame_alloc();
+            sFrame.timestamp = frame->pts * av_q2d(fmtCtx->streams[packet->stream_index]->time_base);
+            av_frame_move_ref(sFrame.frame, frame);
+            
+            LOGW("[{}] decode frame: {:.3f} size {}", packet->stream_index, sFrame.timestamp, m_pCFrame->size());
+            m_pCFrame->push(sFrame);
+            
             frame = av_frame_alloc();
         }
         av_packet_unref(packet);

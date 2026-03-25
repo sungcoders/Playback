@@ -11,19 +11,26 @@ extern "C" {
 
 #include "UtilsLog.h"
 
+struct FrameInfo
+{
+    AVFrame* frame;
+    double timestamp;
+    double duration;
+};
+
 class PlaybackFrame
 {
 public:
     PlaybackFrame();
     ~PlaybackFrame() = default;
 
-    void push(AVFrame* pkt);
-    void pop(AVFrame* pkt);
+    void push(FrameInfo& sFrame);
+    void pop(FrameInfo& sFrame);
 
     int size();
 
 private:
-    std::queue<AVFrame*> queue;
+    std::queue<FrameInfo> queue;
     std::mutex m_mutex;
     std::condition_variable cv;
 

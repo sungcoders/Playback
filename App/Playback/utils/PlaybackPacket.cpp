@@ -9,7 +9,14 @@ PlaybackPacket::PlaybackPacket()
 
 void PlaybackPacket::push(AVPacket* pkt)
 {
+    std::unique_lock<std::mutex> lock(m_mutex);
     AVPacket* packet = av_packet_alloc();
+    
+    if(queue.size() > 10)
+    {
+        usleep(150000);
+    }
+    
     if (!packet) {
         LOGE("Failed to allocate AVPacket");
         return;
@@ -17,7 +24,6 @@ void PlaybackPacket::push(AVPacket* pkt)
 
     av_packet_move_ref(packet, pkt);
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
         queue.push(packet);
     }
 
@@ -46,3 +52,13 @@ int PlaybackPacket::size()
     std::unique_lock<std::mutex> lock(m_mutex);
     return queue.size();
 }
+
+bool PlaybackPacket::waitPacket()
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+    cv.wait(lock, [this]() {
+        return queue.size() < 10;
+    });
+    return true;
+}
+

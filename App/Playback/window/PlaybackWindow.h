@@ -16,14 +16,17 @@ public:
     void renderFrame(AVFrame* frame);
     void delay(int ms);
     void destroyWindow();
+
+    void WindowEvent();
     
 private:
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     SDL_Texture* texture = nullptr;
     SDL_Event event;
-
-    void WindowEvent();
+    std::thread eventThread;
+    int currentW;
+    int currentH;
 };
 
 #endif // WINDOW_H

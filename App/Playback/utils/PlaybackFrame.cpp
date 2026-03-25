@@ -7,32 +7,41 @@ PlaybackFrame::PlaybackFrame()
 {
 }
 
-void PlaybackFrame::push(AVFrame* pkt)
+void PlaybackFrame::push(FrameInfo& sFrame)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
 
-    AVFrame* frame = av_frame_alloc();
-    av_frame_move_ref(frame, pkt);
+    FrameInfo sFrameInfo{};
+    sFrameInfo.frame = av_frame_alloc();
+    
+    sFrameInfo.timestamp = sFrame.timestamp;
+    sFrameInfo.duration  = sFrame.duration;
+    av_frame_move_ref(sFrameInfo.frame, sFrame.frame);
 
-    queue.push(frame);
-    LOGW("Push frame: {} size {}", frame->pts, queue.size());
+    LOGW("Push frame: {} size {}", sFrameInfo.frame->pts, queue.size());
+    queue.push(sFrameInfo);
+
+    av_frame_free(&sFrame.frame);
+
     cv.notify_one();
 }
 
-void PlaybackFrame::pop(AVFrame* pkt)
+void PlaybackFrame::pop(FrameInfo& sFrame)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
 
     cv.wait(lock, [this]() {
-        // LOGW("Waiting for frame, current queue size: {}", queue.size());
         return !queue.empty();
     });
 
-    AVFrame* frame = queue.front();
+    FrameInfo sFrameInfo = queue.front();
     queue.pop();
 
-    av_frame_move_ref(pkt, frame);
-    av_frame_free(&frame);
+    sFrame.frame = sFrameInfo.frame;
+    sFrame.timestamp = sFrameInfo.timestamp;
+    sFrame.duration  = sFrameInfo.duration;
+
+    sFrameInfo.frame = nullptr;
 }
 
 

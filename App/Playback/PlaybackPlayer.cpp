@@ -24,7 +24,7 @@ void PlaybackPlayer::start()
         LOGE("Failed to create PlaybackDemux");
         return;
     }
-    m_pCdemux->Init("video.mp4");
+    m_pCdemux->Init("D:/SLV/WorkSpace/App/Playback/Media/video.mp4");
     m_pCdemux->Start();
 
     inputThread = std::thread(&PlaybackPlayer::inputLoop, this);
