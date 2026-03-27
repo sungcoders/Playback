@@ -1,11 +1,21 @@
 #include "PlaybackDecodeVideo.h"
 #include "PlaybackFrame.h"
 
-void PlaybackDecodeVideo::Init(AVCodecContext* codecCtx, AVFormatContext* fmtCtx)
+PlaybackDecodeVideo::PlaybackDecodeVideo()
+: m_pCFrame(nullptr)
+, fmtCtx(nullptr)
+, codecCtx(nullptr)
+, outputVideo(nullptr)
+{
+    m_pCFrame = std::make_shared<PlaybackFrame>();
+    outputVideo = std::make_unique<PlaybackOutputVideo>(m_pCFrame);
+}
+
+void PlaybackDecodeVideo::Init(AVCodecContext* codecCtx, AVFormatContext* fmtCtx, std::shared_ptr<PlaybackPacket> packet)
 {
     this->codecCtx = codecCtx;
     this->fmtCtx = fmtCtx;
-    // decodeThread = std::thread(&PlaybackDecodeVideo::Decode, this);
+    this->m_pCPacket = packet;
     LOGW("Video decode thread started");
 }
 

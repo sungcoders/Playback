@@ -1,15 +1,25 @@
 #include <iostream>
 #include "PlaybackPlayer.h"
+#include "PlaybackOutputVideo.h"
+
+// void OutputPlayback();
+
+PlaybackPlayer player;
+// PlaybackOutputVideo videoOut;
 
 int main(int argc, char* argv[]) {
     
-    PlaybackPlayer player;
     player.start();
-
-     while (true) {
-        player.update();
-        // Sleep(50);
-    }
-
+    // videoOut.Init();
+    // OutputPlayback();
+    while(1);
     return 0;
 }
+
+// void OutputPlayback()
+// {
+//     while (true)
+//     {
+//         // videoOut.Output();
+//     }
+// }

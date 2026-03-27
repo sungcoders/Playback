@@ -2,7 +2,7 @@
 
 void PlaybackOutputVideo::Init()
 {
-    win.createWindow(1920, 1044);
+    // win.createWindow(1920, 1044);
     LOGE("Video output thread initialized");
 }
 
@@ -21,7 +21,7 @@ void PlaybackOutputVideo::Output()
         m_pCFrame->pop(sFrame);
 
         LOGE("Display frame video: {:.3f}", sFrame.timestamp);
-        win.renderFrame(sFrame.frame);
+        // win.renderFrame(sFrame.frame);
         win.delay(33);
 
         av_frame_free(&sFrame.frame);

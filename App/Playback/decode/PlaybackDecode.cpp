@@ -1,10 +1,15 @@
 #include "PlaybackDecode.h"
 
-// PlaybackDecode::PlaybackDecode() {
-// }
+PlaybackDecode::PlaybackDecode()
+: m_pCPacket(nullptr)
+{
+    m_pCPacket = std::make_shared<PlaybackPacket>();
+}
 
-// PlaybackDecode::~PlaybackDecode() {
-// }
+PlaybackDecode::~PlaybackDecode()
+{
+    decodeThread.join();
+}
 
 void PlaybackDecode::Start()
 {

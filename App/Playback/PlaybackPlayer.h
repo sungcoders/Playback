@@ -20,7 +20,6 @@ public:
 
     void start();   // start thread
     void stop();    // stop thread
-    void update();  // handle input (call in main loop)
 
     void SetConfig();
     void SetPlayInfo();
@@ -28,13 +27,13 @@ public:
     void Pause();
     void PlayStop();
 
-private:
-    void inputLoop(); // thread function to check key presses
-    
-    std::thread inputThread;
-    std::atomic<bool> running;
-    std::atomic<char> keyPressed;
+    void inputLoop();
+
+private:    
+    std::atomic<bool> m_bIsExit;
     std::unique_ptr<PlaybackDemux> m_pCdemux;
+    std::thread inputThread;
+
 };
 
 

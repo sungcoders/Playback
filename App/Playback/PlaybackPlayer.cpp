@@ -3,8 +3,7 @@
 #include <windows.h>
 
 PlaybackPlayer::PlaybackPlayer()
-: running(false)
-, keyPressed(0)
+: m_bIsExit(true)
 , m_pCdemux(nullptr)
 {
     
@@ -12,12 +11,11 @@ PlaybackPlayer::PlaybackPlayer()
 
 PlaybackPlayer::~PlaybackPlayer()
 {
-    stop();
+    // inputThread.join();
 }
 
 void PlaybackPlayer::start()
 {
-    running = false;
     m_pCdemux = std::make_unique<PlaybackDemux>();
     if (m_pCdemux == nullptr)
     {
@@ -27,43 +25,45 @@ void PlaybackPlayer::start()
     m_pCdemux->Init("D:/SLV/WorkSpace/App/Playback/Media/video.mp4");
     m_pCdemux->Start();
 
-    inputThread = std::thread(&PlaybackPlayer::inputLoop, this);
-    std::cout << "PlaybackPlayer started. Press 'Q' to quit.\n";
+    // inputThread = std::thread(&PlaybackPlayer::inputLoop, this);
+    LOGD("PlaybackPlayer started");
 }
 
 void PlaybackPlayer::stop()
 {
-    running = false;
-    if (inputThread.joinable()) {
-        inputThread.join();
-    }
 }
 
 void PlaybackPlayer::inputLoop()
 {
-    while (running) {
-        for (int i = 0; i < 256; i++) {
-            if (GetAsyncKeyState(i) & 0x8000) {
-                keyPressed = (char)i;
-                Sleep(200);
-            }
+    std::string s;
+    while (m_bIsExit.load())
+    {
+        std::getline(std::cin, s);
+        if(s == "")
+        {
+            continue;
+        }
+        else if(s == "trigger")
+        {
+            LOGI("trigger event");
+        }
+        else if(s == "clear")
+        {
+            LOGI("reset event");
+        }
+        else if(s == "exit")
+        {
+            LOGI("Thoat");
+            m_bIsExit.store(false);
+            return;
+        }
+        else
+        {
+            LOGI("input = {}", s);
+            LOGI("errno = {}", errno);
         }
     }
-}
-
-void PlaybackPlayer::update()
-{
-    if (keyPressed != 0) {
-        char k = keyPressed;
-        keyPressed = 0;
-
-        std::cout << "Nhan phim: " << k << std::endl;
-
-        if (k == 'q' || k == 'Q') {
-            std::cout << "Thoat...\n";
-            stop();
-        }
-    }
+    LOGI("data = {}", errno);
 }
 
 void PlaybackPlayer::SetPlayInfo()

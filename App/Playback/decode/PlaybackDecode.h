@@ -13,14 +13,14 @@ extern "C" {
 class PlaybackDecode
 {
 public:
-    PlaybackDecode(std::shared_ptr<PlaybackPacket>& packet) : m_pCPacket(packet) {};
-    ~PlaybackDecode() = default;
+    PlaybackDecode();
+    ~PlaybackDecode();
 
     void Start();
     virtual void Decode() = 0;
 
 protected:
-    std::shared_ptr<PlaybackPacket> m_pCPacket = std::make_shared<PlaybackPacket>();
+    std::shared_ptr<PlaybackPacket> m_pCPacket;
     std::thread decodeThread;
 };
 

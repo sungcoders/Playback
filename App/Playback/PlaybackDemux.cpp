@@ -1,6 +1,24 @@
 #include "PlaybackDemux.h"
 #include "PlaybackWindow.h"
 
+PlaybackDemux::PlaybackDemux()
+: fmtCtx(nullptr)
+, packet(nullptr)
+, videoStream(-1)
+, codecCtx(nullptr)
+, codecPar(nullptr)
+, codec(nullptr)
+, m_pCpacketVideo(nullptr)
+, m_pCpacketAudio(nullptr)
+, m_pCdecode(nullptr)
+{
+}
+
+PlaybackDemux::~PlaybackDemux()
+{
+    demuxThread.join();
+}
+
 void PlaybackDemux::Start()
 {
     LOGD("Starting demuxing process...");
@@ -36,15 +54,18 @@ void PlaybackDemux::Init(const std::string& filename)
     codecCtx = avcodec_alloc_context3(codec);
     avcodec_parameters_to_context(codecCtx, codecPar);
     avcodec_open2(codecCtx, codec, nullptr);
-    width = codecCtx->width;
-    height = codecCtx->height;
     av_dump_format(fmtCtx, 0, filename.c_str(), 0);
 }
 
 void PlaybackDemux::Demux()
 {
-    m_pCdecode->Init(codecCtx, fmtCtx);
+    packet = av_packet_alloc();
+    m_pCpacketVideo = std::make_shared<PlaybackPacket>();
+    m_pCpacketAudio = std::make_shared<PlaybackPacket>();
+    m_pCdecode = std::make_unique<PlaybackDecodeVideo>();
+    m_pCdecode->Init(codecCtx, fmtCtx, m_pCpacketVideo);
     m_pCdecode->Start();
+    LOGD("Demux");
 
     while (av_read_frame(fmtCtx, packet) >= 0)
     {
