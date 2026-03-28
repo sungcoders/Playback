@@ -2,12 +2,14 @@
 #include "PlaybackWindow.h"
 
 PlaybackDemux::PlaybackDemux()
-: fmtCtx(nullptr)
-, packet(nullptr)
-, videoStream(-1)
-, codecCtx(nullptr)
-, codecPar(nullptr)
-, codec(nullptr)
+: m_bExit(false)
+, m_fmtCtx(nullptr)
+, m_idxvideoStream(-1)
+, m_idxaudioStream(-1)
+, m_dVideoTimeBase(0.0)
+, m_dAudioTimeBase(0.0)
+, m_codecCtx(nullptr)
+, m_codecPar(nullptr)
 , m_pCpacketVideo(nullptr)
 , m_pCpacketAudio(nullptr)
 , m_pCdecode(nullptr)
@@ -28,57 +30,69 @@ void PlaybackDemux::Start()
 void PlaybackDemux::Init(const std::string& filename)
 {
     avformat_network_init();
-    if (avformat_open_input(&fmtCtx, filename.c_str(), nullptr, nullptr) != 0)
+    if (avformat_open_input(&m_fmtCtx, filename.c_str(), nullptr, nullptr) != 0)
     {
         LOGE("can not open file {} {}", filename, errno);
         return;
     }
-    avformat_find_stream_info(fmtCtx, nullptr);
+    avformat_find_stream_info(m_fmtCtx, nullptr);
+    m_idxvideoStream = av_find_best_stream(m_fmtCtx, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+    m_idxaudioStream = av_find_best_stream(m_fmtCtx, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
+    m_dVideoTimeBase = av_q2d(m_fmtCtx->streams[m_idxvideoStream]->time_base);
+    m_dAudioTimeBase = av_q2d(m_fmtCtx->streams[m_idxaudioStream]->time_base);
 
-    for (unsigned int i = 0; i < fmtCtx->nb_streams; i++)
-    {
-        if (fmtCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
-        {
-            videoStream = i;
-            break;
-        }
-    }
-    
-    if (videoStream == -1) {
-        LOGE("Không tìm thấy video stream");
-        return;
-    }
-
-    codecPar = fmtCtx->streams[videoStream]->codecpar;
-    codec = avcodec_find_decoder(codecPar->codec_id);
-    codecCtx = avcodec_alloc_context3(codec);
-    avcodec_parameters_to_context(codecCtx, codecPar);
-    avcodec_open2(codecCtx, codec, nullptr);
-    av_dump_format(fmtCtx, 0, filename.c_str(), 0);
+    m_codecPar = m_fmtCtx->streams[m_idxvideoStream]->codecpar;
+    const AVCodec* codec = avcodec_find_decoder(m_codecPar->codec_id);
+    m_codecCtx = avcodec_alloc_context3(codec);
+    avcodec_parameters_to_context(m_codecCtx, m_codecPar);
+    avcodec_open2(m_codecCtx, codec, nullptr);
+    av_dump_format(m_fmtCtx, 0, filename.c_str(), 0);
 }
 
 void PlaybackDemux::Demux()
 {
-    packet = av_packet_alloc();
+    AVPacket* packet = av_packet_alloc();
     m_pCpacketVideo = std::make_shared<PlaybackPacket>();
     m_pCpacketAudio = std::make_shared<PlaybackPacket>();
     m_pCdecode = std::make_unique<PlaybackDecodeVideo>();
-    m_pCdecode->Init(codecCtx, fmtCtx, m_pCpacketVideo);
+    m_pCdecode->Init(m_codecCtx, m_fmtCtx, m_pCpacketVideo);
     m_pCdecode->Start();
     LOGD("Demux");
 
-    while (av_read_frame(fmtCtx, packet) >= 0)
+    while (!m_bExit.load())
     {
-        if (packet->stream_index == videoStream)
+        int ret = av_read_frame(m_fmtCtx, packet);
+        if (ret < 0)
         {
-            LOGD("[{}] push packet: {:.3f} size {}", packet->stream_index, av_q2d(fmtCtx->streams[packet->stream_index]->time_base) * packet->pts, m_pCpacketVideo->size());
-            m_pCpacketVideo->push(packet);
+            // Handle error or end of file
+        }
+        else
+        {
+            pushPacketAV(packet);
             av_packet_unref(packet);
         }
     }
 
     av_packet_free(&packet);
-    avcodec_free_context(&codecCtx);
-    avformat_close_input(&fmtCtx);
+    avcodec_free_context(&m_codecCtx);
+    avformat_close_input(&m_fmtCtx);
     LOGE("Demuxing process finished");
+}
+
+void PlaybackDemux::pushPacketAV(AVPacket* avpacket)
+{
+    if(avpacket->stream_index == m_idxvideoStream)
+    {
+        LOGD("push video packet: {:.3f}s size {}", m_dVideoTimeBase * avpacket->pts, m_pCpacketVideo->size());
+        m_pCpacketVideo->push(avpacket);
+    }
+    else if(avpacket->stream_index == m_idxaudioStream)
+    {
+        LOGD("push audio packet: {:.3f}s size {}", m_dAudioTimeBase * avpacket->pts, m_pCpacketAudio->size());
+        m_pCpacketAudio->push(avpacket);
+    }
+    else
+    {
+        LOGD("Unknown stream index: {} type {}", avpacket->stream_index, static_cast<int>(m_fmtCtx->streams[avpacket->stream_index]->codecpar->codec_type));
+    }
 }

@@ -10,10 +10,11 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
-#include <SDL2/SDL.h>
 #include "PlaybackDemux.h"
+#include "PlaybackWindow.h"
 
-class PlaybackPlayer {
+class PlaybackPlayer : public PlaybackMediator
+{
 public:
     PlaybackPlayer();
     ~PlaybackPlayer();
@@ -28,11 +29,17 @@ public:
     void PlayStop();
 
     void inputLoop();
+    void outPutView();
+
+    void fwdFrameOut(std::shared_ptr<PlaybackFrame> MediaFrame) override;
 
 private:    
     std::atomic<bool> m_bIsExit;
     std::unique_ptr<PlaybackDemux> m_pCdemux;
+    std::shared_ptr<PlaybackFrame> m_pCFrame;
     std::thread inputThread;
+    std::thread outPutThread;
+    PlaybackWindow win;
 
 };
 

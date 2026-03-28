@@ -17,9 +17,9 @@ public:
 private:
     std::shared_ptr<PlaybackFrame> m_pCFrame;
     std::shared_ptr<PlaybackPacket> m_pCPacket;
-    AVFormatContext* fmtCtx;
-    AVCodecContext* codecCtx;
-    std::unique_ptr<PlaybackOutputVideo> outputVideo;
+    AVFormatContext* m_fmtCtx;
+    AVCodecContext* m_codecCtx;
+    std::unique_ptr<PlaybackOutputVideo> m_pCOutputVideo;
     std::thread decodeThread;
 };
 

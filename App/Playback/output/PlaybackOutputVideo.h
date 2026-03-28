@@ -6,16 +6,15 @@
 class PlaybackOutputVideo : public PlaybackOutput
 {
 public:
-    PlaybackOutputVideo(std::shared_ptr<PlaybackFrame>& f) : PlaybackOutput(f) {};
+    PlaybackOutputVideo();
     ~PlaybackOutputVideo() = default;
 
-    void Init();
-    void Start();
-    void Output();
+    void Init(std::shared_ptr<PlaybackFrame> frame);
+    void Output() override;
 
 private:
-    std::thread outputThread;
-
+    std::shared_ptr<PlaybackFrame> m_pCFrame;
+    PlaybackMediator* mediator;
 };
 
 #endif // PLAYBACKOUTPUTVIDEO_H

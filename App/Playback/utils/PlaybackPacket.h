@@ -1,6 +1,7 @@
 #ifndef PLAYBACKPACKET_H
 #define PLAYBACKPACKET_H
 
+#include <atomic>
 #include <queue>
 #include <mutex>
 #include <condition_variable>
