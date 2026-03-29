@@ -53,7 +53,7 @@ void PlaybackDecodeVideo::Decode()
             av_frame_move_ref(sFrame.frame, avframe);
             
             handleEnoughFrame();
-            LOGW("[{}]decode frame: {:.3f}s size {}", avpacket->stream_index, sFrame.timestamp, m_pCFrame->size());
+            LOGW("[{}]push frame: {:.3f}s size {}", avpacket->stream_index, sFrame.timestamp, m_pCFrame->size());
             m_pCFrame->push(sFrame);
             
             avframe = av_frame_alloc();

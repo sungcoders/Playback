@@ -39,7 +39,7 @@ void PlaybackPlayer::outPutView()
         m_pCFrame->pop(sFrame);
         LOGE("Display frame video: {:.3f}s", sFrame.timestamp);
         win.renderFrame(sFrame.frame);
-        win.delay(30);
+        win.delay(33);
         av_frame_free(&sFrame.frame);
     }
     LOGE("Outputing process finished");

@@ -18,7 +18,6 @@ void PlaybackFrame::push(FrameInfo& sFrame)
     sFrameInfo.duration  = sFrame.duration;
     av_frame_move_ref(sFrameInfo.frame, sFrame.frame);
 
-    LOGW("Push frame: {} size {}", sFrameInfo.frame->pts, queue.size());
     queue.push(sFrameInfo);
 
     av_frame_free(&sFrame.frame);

@@ -1,10 +1,11 @@
 #ifndef PLAYBACKWINDOW_H
 #define PLAYBACKWINDOW_H
 
-#include <windows.h>
-#include <SDL2/SDL.h>
-#include "PlaybackFrame.h"
-#include "UtilsLog.h"
+// #include <windows.h>
+// #include <SDL2/SDL.h>
+// #include "PlaybackFrame.h"
+// #include "UtilsLog.h"
+#include "UtilsWindow.h"
 
 class PlaybackWindow
 {
@@ -24,6 +25,10 @@ private:
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     SDL_Texture* texture = nullptr;
+    // SDL_Rect pauseBtn;
+    // bool isPaused;
+    // int winWidth;
+    // int winHeight;
     SDL_Event event;
     std::thread eventThread;
 };

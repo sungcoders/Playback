@@ -94,7 +94,7 @@ void PlaybackDemux::pushPacketAV(AVPacket* avpacket)
     }
     else if(avpacket->stream_index == m_idxaudioStream)
     {
-        LOGD("push audio packet: {:.3f}s size {}", m_dAudioTimeBase * avpacket->pts, m_pCpacketAudio->size());
+        // LOGD("push audio packet: {:.3f}s size {}", m_dAudioTimeBase * avpacket->pts, m_pCpacketAudio->size());
         // m_pCpacketAudio->push(avpacket);
     }
     else
