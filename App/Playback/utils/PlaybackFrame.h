@@ -9,6 +9,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+#include "PlaybackClock.h"
 #include "UtilsLog.h"
 
 struct FrameInfo
@@ -26,6 +27,7 @@ public:
 
     void push(FrameInfo& sFrame);
     void pop(FrameInfo& sFrame);
+    FrameInfo* getLastFrame();
 
     int size();
     void waitFrame();
@@ -33,6 +35,7 @@ public:
     void flushFrame();
 
 private:
+    FrameInfo sLastFrame;
     std::queue<FrameInfo> queue;
     std::mutex m_mutex;
     std::condition_variable cv;

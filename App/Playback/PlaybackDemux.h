@@ -11,7 +11,7 @@ extern "C" {
 class PlaybackDemux
 {
 public:
-    PlaybackDemux(std::shared_ptr<PlaybackDecodeVideo> decode);
+    PlaybackDemux(std::shared_ptr<PlaybackDecodeVideo> decode, std::shared_ptr<PlaybackClock> clock);
     ~PlaybackDemux();
 
     void Init(const std::string& filename);
@@ -29,6 +29,7 @@ private:
     std::shared_ptr<PlaybackPacket> m_pCpacketVideo;
     std::shared_ptr<PlaybackPacket> m_pCpacketAudio;
     std::shared_ptr<PlaybackDecodeVideo> m_pCdecode;
+    std::shared_ptr<PlaybackClock> m_pCClock;
     std::thread demuxThread;
 
     void Demux(void);

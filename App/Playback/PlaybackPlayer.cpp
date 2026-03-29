@@ -7,6 +7,8 @@ PlaybackPlayer::PlaybackPlayer()
 , m_pCdemux(nullptr)
 , m_pCdecode(nullptr)
 , m_pCFrame(nullptr)
+, m_pCClock(nullptr)
+, m_ePlaybackState(PlaybackState::INIT_E)
 {
 }
 
@@ -18,8 +20,9 @@ PlaybackPlayer::~PlaybackPlayer()
 void PlaybackPlayer::start()
 {
     m_pCFrame = std::make_shared<PlaybackFrame>();
-    m_pCdecode = std::make_shared<PlaybackDecodeVideo>(m_pCFrame);
-    m_pCdemux = std::make_unique<PlaybackDemux>(m_pCdecode);
+    m_pCClock = std::make_shared<PlaybackClock>();
+    m_pCdecode = std::make_shared<PlaybackDecodeVideo>(m_pCFrame, m_pCClock);
+    m_pCdemux = std::make_unique<PlaybackDemux>(m_pCdecode, m_pCClock);
 
     if(m_pCdemux == nullptr || m_pCdecode == nullptr || m_pCFrame == nullptr)
     {
@@ -35,9 +38,15 @@ void PlaybackPlayer::outPutView()
     while(!m_bIsExit.load())
     {
         handleEvent();
+        if(m_pCClock->isPaused())
+        {
+            win.renderFrame(m_pCFrame->getLastFrame()->frame);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
         FrameInfo sFrame = {};
         m_pCFrame->pop(sFrame);
-        LOGE("Display frame video: {:.3f}s", sFrame.timestamp);
+        // LOGE("Display frame video: {:.3f}s", sFrame.timestamp);
         win.renderFrame(sFrame.frame);
         win.delay(33);
         av_frame_free(&sFrame.frame);
@@ -57,6 +66,11 @@ void PlaybackPlayer::handleEvent()
         return;
     case SDL_KEYDOWN:
         LOGI("Key down event: {}", event.key.keysym.sym);
+        return;
+    case SDL_MOUSEBUTTONDOWN:
+        if(win.isPaused()) { Pause();  }
+        else               { Resume(); }
+        return;
     }
 }
 
@@ -72,6 +86,7 @@ void PlaybackPlayer::SetConfig()
 
 void PlaybackPlayer::PlayStart(std::string filename)
 {
+    m_ePlaybackState.store(PlaybackState::PLAY_E);
     m_pCdemux->Init(filename);
     m_pCdemux->Start();
     outPutThread = std::thread(&PlaybackPlayer::outPutView, this);
@@ -80,11 +95,21 @@ void PlaybackPlayer::PlayStart(std::string filename)
 
 void PlaybackPlayer::Pause()
 {
-    // Code để tạm dừng phát video
+    m_ePlaybackState.store(PlaybackState::PAUSE_E);
+    m_pCClock->setPause();
+    LOGD("PlaybackPlayer paused");
+}
+
+void PlaybackPlayer::Resume()
+{
+    m_ePlaybackState.store(PlaybackState::PLAY_E);
+    m_pCClock->setPlay();
+    LOGD("PlaybackPlayer resumed");
 }
 
 void PlaybackPlayer::PlayStop()
 {
+    m_ePlaybackState.store(PlaybackState::STOP_E);
     m_pCdemux->Stop();
     win.destroyWindow();
     m_bIsExit.store(true);

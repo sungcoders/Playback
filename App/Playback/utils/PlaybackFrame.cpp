@@ -1,7 +1,8 @@
 #include "PlaybackFrame.h"
 
 PlaybackFrame::PlaybackFrame()
-: queue()
+: sLastFrame{}
+, queue()
 , m_mutex()
 , cv()
 {
@@ -40,11 +41,17 @@ void PlaybackFrame::pop(FrameInfo& sFrame)
     sFrame.timestamp = sFrameInfo.timestamp;
     sFrame.duration  = sFrameInfo.duration;
 
+    sLastFrame = sFrameInfo;
+    
     sFrameInfo.frame = nullptr;
 
     cv.notify_one();
 }
 
+FrameInfo* PlaybackFrame::getLastFrame()
+{
+    return &sLastFrame;
+}
 
 int PlaybackFrame::size()
 {

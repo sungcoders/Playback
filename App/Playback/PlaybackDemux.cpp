@@ -1,8 +1,9 @@
 #include "PlaybackDemux.h"
 #include "PlaybackWindow.h"
 
-PlaybackDemux::PlaybackDemux(std::shared_ptr<PlaybackDecodeVideo> decode)
+PlaybackDemux::PlaybackDemux(std::shared_ptr<PlaybackDecodeVideo> decode, std::shared_ptr<PlaybackClock> clock)
 : m_pCdecode(decode)
+, m_pCClock(clock)
 , m_bExit(false)
 , m_fmtCtx(nullptr)
 , m_codecCtx(nullptr)
@@ -66,6 +67,11 @@ void PlaybackDemux::Demux(void)
 
     while(!m_bExit.load())
     {
+        if(m_pCClock->isPaused())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
         int ret = av_read_frame(m_fmtCtx, packet);
         if (ret < 0)
         {
@@ -89,7 +95,7 @@ void PlaybackDemux::pushPacketAV(AVPacket* avpacket)
 {
     if(avpacket->stream_index == m_idxvideoStream)
     {
-        LOGD("push video {} packet: {:.3f}s size {}", (avpacket->flags & AV_PKT_FLAG_KEY ) ? "key" : "", m_dVideoTimeBase * avpacket->pts, m_pCpacketVideo->size());
+        // LOGD("push video {} packet: {:.3f}s size {}", (avpacket->flags & AV_PKT_FLAG_KEY ) ? "key" : "", m_dVideoTimeBase * avpacket->pts, m_pCpacketVideo->size());
         m_pCpacketVideo->push(avpacket);
     }
     else if(avpacket->stream_index == m_idxaudioStream)

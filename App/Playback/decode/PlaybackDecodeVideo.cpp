@@ -1,8 +1,9 @@
 #include "PlaybackDecodeVideo.h"
 #include "PlaybackFrame.h"
 
-PlaybackDecodeVideo::PlaybackDecodeVideo(std::shared_ptr<PlaybackFrame> frame)
+PlaybackDecodeVideo::PlaybackDecodeVideo(std::shared_ptr<PlaybackFrame> frame, std::shared_ptr<PlaybackClock> clock)
 : m_pCFrame(frame)
+, m_pCClock(clock)
 , m_bExit(false)
 , m_dTimebase(0.0)
 , m_codecCtx(nullptr)
@@ -31,6 +32,11 @@ void PlaybackDecodeVideo::Decode()
         
     while(!m_bExit.load())
     {
+        if(m_pCClock->isPaused())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
         FrameInfo sFrame = {};
         m_pCPacket->pop(avpacket);
         int ret = avcodec_send_packet(m_codecCtx, avpacket);
@@ -53,7 +59,7 @@ void PlaybackDecodeVideo::Decode()
             av_frame_move_ref(sFrame.frame, avframe);
             
             handleEnoughFrame();
-            LOGW("[{}]push frame: {:.3f}s size {}", avpacket->stream_index, sFrame.timestamp, m_pCFrame->size());
+            // LOGW("[{}]push frame: {:.3f}s size {}", avpacket->stream_index, sFrame.timestamp, m_pCFrame->size());
             m_pCFrame->push(sFrame);
             
             avframe = av_frame_alloc();

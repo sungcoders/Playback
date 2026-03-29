@@ -11,6 +11,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+#include "PlaybackClock.h"
 #include "UtilsLog.h"
 
 class PlaybackPacket

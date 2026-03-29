@@ -11,6 +11,7 @@ extern "C" {
 }
 
 #include "PlaybackDemux.h"
+#include "PlaybackClock.h"
 #include "PlaybackDecodeVideo.h"
 #include "PlaybackOutputVideo.h"
 #include "PlaybackWindow.h"
@@ -26,16 +27,28 @@ public:
     void SetPlayInfo();
     void PlayStart(std::string filename);
     void Pause();
+    void Resume();
     void PlayStop();
 
     void outPutView();
     void handleEvent();
 
-private:    
+private:
+    enum class PlaybackState
+    {
+        INIT_E,
+        PLAY_E,
+        PAUSE_E,
+        STOP_E,
+        COMPLETED_E
+    };
+
     std::atomic<bool> m_bIsExit;
     std::unique_ptr<PlaybackDemux> m_pCdemux;
     std::shared_ptr<PlaybackDecodeVideo> m_pCdecode;
     std::shared_ptr<PlaybackFrame> m_pCFrame;
+    std::shared_ptr<PlaybackClock> m_pCClock;
+    std::atomic<PlaybackState> m_ePlaybackState;
     std::thread inputThread;
     std::thread outPutThread;
     PlaybackWindow win;

@@ -33,7 +33,8 @@ set(SOURCES
     output/PlaybackOutputVideo.cpp
     utils/PlaybackPacket.cpp
     utils/Playbackframe.cpp
-    # utils/PlaybackClock.cpp
+    utils/PlaybackClock.cpp
+    utils/UtilsWindow.cpp
     window/PlaybackWindow.cpp
 )
 

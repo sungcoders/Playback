@@ -20,9 +20,16 @@ public:
     UtilsWindow();
     ~UtilsWindow();
 
-    void drawButton(SDL_Renderer* renderer, SDL_Rect& buttonRect, bool isPaused);
+    void drawButton(SDL_Rect& button, ButtonInfo& info);
     void renderButton(SDL_Renderer* renderer, SDL_Rect& buttonRect, bool isPaused);
+    bool isInsideArea(int mouseX, int mouseY, SDL_Rect& buttonRect);
+    void drawPlayIcon(SDL_Renderer* renderer, const SDL_Rect& box);
+    void drawPauseIcon(SDL_Renderer* renderer, const SDL_Rect& box);
+    void drawNextIcon(SDL_Renderer* renderer, int x, int y);
+    void drawTimeline(SDL_Renderer* renderer, int x, int y);
 
+private:
+    
 };
 
 #endif // UTILS_WINDOW_H
