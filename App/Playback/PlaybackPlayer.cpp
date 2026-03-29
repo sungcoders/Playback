@@ -93,6 +93,11 @@ void PlaybackPlayer::PlayStart(std::string filename)
     LOGD("PlaybackPlayer started");
 }
 
+void PlaybackPlayer::Seek(int64_t position)
+{
+    // Code để thực hiện seek đến vị trí mong muốn
+}
+
 void PlaybackPlayer::Pause()
 {
     m_ePlaybackState.store(PlaybackState::PAUSE_E);

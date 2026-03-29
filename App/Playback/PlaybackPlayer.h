@@ -26,6 +26,7 @@ public:
     void SetConfig();
     void SetPlayInfo();
     void PlayStart(std::string filename);
+    void Seek(int64_t position);
     void Pause();
     void Resume();
     void PlayStop();
