@@ -89,7 +89,7 @@ void PlaybackDemux::pushPacketAV(AVPacket* avpacket)
 {
     if(avpacket->stream_index == m_idxvideoStream)
     {
-        LOGD("push video packet: {:.3f}s size {}", m_dVideoTimeBase * avpacket->pts, m_pCpacketVideo->size());
+        LOGD("push video {} packet: {:.3f}s size {}", (avpacket->flags & AV_PKT_FLAG_KEY ) ? "key" : "", m_dVideoTimeBase * avpacket->pts, m_pCpacketVideo->size());
         m_pCpacketVideo->push(avpacket);
     }
     else if(avpacket->stream_index == m_idxaudioStream)

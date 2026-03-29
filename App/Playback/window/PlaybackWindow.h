@@ -14,6 +14,7 @@ public:
 
     void createWindow(int width, int height);
     void renderFrame(AVFrame* frame);
+    void resizeWindow(int width, int height);
     void delay(int ms);
     void destroyWindow();
 
@@ -25,8 +26,6 @@ private:
     SDL_Texture* texture = nullptr;
     SDL_Event event;
     std::thread eventThread;
-    int currentW;
-    int currentH;
 };
 
 #endif // WINDOW_H

@@ -26,7 +26,7 @@ void PlaybackPlayer::start()
         LOGE("Failed to start MediaPlayer");
         return;
     }
-    PlayStart("D:/SLV/WorkSpace/App/Playback/Media/video.mp4");
+    PlayStart("D:/SLV/WorkSpace/App/Playback/Media/mp4/video.mp4");
 }
 
 void PlaybackPlayer::outPutView()
@@ -40,7 +40,6 @@ void PlaybackPlayer::outPutView()
         LOGE("Display frame video: {:.3f}s", sFrame.timestamp);
         win.renderFrame(sFrame.frame);
         win.delay(30);
-
         av_frame_free(&sFrame.frame);
     }
     LOGE("Outputing process finished");

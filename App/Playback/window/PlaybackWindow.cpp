@@ -1,6 +1,9 @@
 #include "PlaybackWindow.h"
 
 PlaybackWindow::PlaybackWindow()
+: window(nullptr)
+, renderer(nullptr)
+, texture(nullptr)
 {
 }
 
@@ -15,12 +18,12 @@ void PlaybackWindow::createWindow(int width, int height)
     LOGI("Creating window with resolution: {}x{}", width, height);
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_CreateWindow(
-        "FFmpeg Player",
+        "Playback (SungLV author)",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         width,
         height,
-        0
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
 
     renderer = SDL_CreateRenderer(window, -1, 0);
@@ -33,27 +36,16 @@ void PlaybackWindow::createWindow(int width, int height)
     );
 }
 
+void PlaybackWindow::resizeWindow(int width, int height)
+{
+    if (window)
+    {
+        SDL_SetWindowSize(window, width, height);
+    }
+}
+
 void PlaybackWindow::renderFrame(AVFrame* frame)
 {
-    if (!texture || frame->width != currentW || frame->height != currentH)
-    {
-        if (texture)
-        {
-            SDL_DestroyTexture(texture);
-        }
-
-        texture = SDL_CreateTexture(
-            renderer,
-            SDL_PIXELFORMAT_IYUV,
-            SDL_TEXTUREACCESS_STREAMING,
-            frame->width,
-            frame->height
-        );
-
-        currentW = frame->width;
-        currentH = frame->height;
-    }
-
     SDL_UpdateYUVTexture(
         texture,
         NULL,
