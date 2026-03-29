@@ -2,7 +2,6 @@
 
 PlaybackOutputVideo::PlaybackOutputVideo()
 : m_pCFrame(nullptr)
-, mediator(nullptr)
 {
 }
 

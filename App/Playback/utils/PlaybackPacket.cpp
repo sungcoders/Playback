@@ -12,20 +12,14 @@ void PlaybackPacket::push(AVPacket* pkt)
     std::unique_lock<std::mutex> lock(m_mutex);
     AVPacket* packet = av_packet_alloc();
     
-    if(queue.size() > 10)
+    if (pkt == nullptr || packet == nullptr)
     {
-        usleep(150000);
-    }
-    
-    if (!packet) {
-        LOGE("Failed to allocate AVPacket");
+        LOGE("Failed to push packet");
         return;
     }
 
     av_packet_move_ref(packet, pkt);
-    {
-        queue.push(packet);
-    }
+    queue.push(packet);
 
     cv.notify_one();
 }
@@ -33,10 +27,8 @@ void PlaybackPacket::push(AVPacket* pkt)
 void PlaybackPacket::pop(AVPacket* pkt)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
-
     cv.wait(lock, [this]()
     {
-        // LOGD("Waiting for packet, current queue size: {}", queue.size());
         return !queue.empty();
     });
 
@@ -45,6 +37,8 @@ void PlaybackPacket::pop(AVPacket* pkt)
 
     av_packet_move_ref(pkt, packet);
     av_packet_free(&packet);
+    
+    cv.notify_one();
 }
 
 int PlaybackPacket::size()
@@ -53,12 +47,30 @@ int PlaybackPacket::size()
     return queue.size();
 }
 
-bool PlaybackPacket::waitPacket()
+void PlaybackPacket::waitPacket()
 {
     std::unique_lock<std::mutex> lock(m_mutex);
-    cv.wait(lock, [this]() {
+    cv.wait(lock, [this]()
+    {
         return queue.size() < 10;
     });
-    return true;
+    return;
 }
 
+void PlaybackPacket::abortPacket()
+{
+    flushPacket();
+    LOGI("flushed packet");
+}
+
+void PlaybackPacket::flushPacket()
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+    while (!queue.empty())
+    {
+        AVPacket* packet = queue.front();
+        av_packet_free(&packet);
+        queue.pop();
+    }
+    cv.notify_all();
+}

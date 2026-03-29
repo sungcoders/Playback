@@ -24,7 +24,9 @@ public:
 
     int size();
 
-    bool waitPacket();
+    void waitPacket();
+    void abortPacket();
+    void flushPacket();
 
 private:
     std::queue<AVPacket*> queue;

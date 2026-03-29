@@ -42,6 +42,8 @@ void PlaybackFrame::pop(FrameInfo& sFrame)
     sFrame.duration  = sFrameInfo.duration;
 
     sFrameInfo.frame = nullptr;
+
+    cv.notify_one();
 }
 
 
@@ -50,3 +52,32 @@ int PlaybackFrame::size()
     std::unique_lock<std::mutex> lock(m_mutex);
     return queue.size();
 }
+
+void PlaybackFrame::waitFrame()
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+    cv.wait(lock, [this]()
+    {
+        return queue.size() < 10;
+    });
+    return;
+}
+
+void PlaybackFrame::abortFrame()
+{
+    flushFrame();
+    LOGI("flushed frame");
+}
+
+void PlaybackFrame::flushFrame()
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+    while (!queue.empty())
+    {
+        FrameInfo sFrameInfo = queue.front();
+        av_frame_free(&sFrameInfo.frame);
+        queue.pop();
+    }
+    cv.notify_all();
+}
+

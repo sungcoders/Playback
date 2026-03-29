@@ -1,22 +1,26 @@
 #include "PlaybackDecodeVideo.h"
 #include "PlaybackFrame.h"
 
-PlaybackDecodeVideo::PlaybackDecodeVideo()
-: m_pCFrame(nullptr)
-, m_fmtCtx(nullptr)
+PlaybackDecodeVideo::PlaybackDecodeVideo(std::shared_ptr<PlaybackFrame> frame)
+: m_pCFrame(frame)
+, m_bExit(false)
+, m_dTimebase(0.0)
 , m_codecCtx(nullptr)
-, m_pCOutputVideo(nullptr)
 {
-    m_pCFrame = std::make_shared<PlaybackFrame>();
-    m_pCOutputVideo = std::make_unique<PlaybackOutputVideo>();
 }
 
-void PlaybackDecodeVideo::Init(AVCodecContext* codecCtx, AVFormatContext* fmtCtx, std::shared_ptr<PlaybackPacket> packet)
+void PlaybackDecodeVideo::Init(AVCodecContext* codecCtx, double timebase, std::shared_ptr<PlaybackPacket> packet)
 {
     this->m_codecCtx = codecCtx;
-    this->m_fmtCtx = fmtCtx;
+    this->m_dTimebase = timebase;
     this->m_pCPacket = packet;
     LOGW("Video decode thread started");
+}
+
+void PlaybackDecodeVideo::Stop()
+{
+    m_pCFrame->abortFrame();
+    m_bExit.store(true);
 }
 
 void PlaybackDecodeVideo::Decode()
@@ -24,11 +28,8 @@ void PlaybackDecodeVideo::Decode()
     LOGW("Starting video decode loop...");
     AVPacket* avpacket = av_packet_alloc();
     AVFrame* avframe = av_frame_alloc();
-    
-    m_pCOutputVideo->Init(m_pCFrame);
-    m_pCOutputVideo->Start();
-    
-    while (true)
+        
+    while(!m_bExit.load())
     {
         FrameInfo sFrame = {};
         m_pCPacket->pop(avpacket);
@@ -48,9 +49,10 @@ void PlaybackDecodeVideo::Decode()
             }
             
             sFrame.frame = av_frame_alloc();
-            sFrame.timestamp = avframe->pts * av_q2d(m_fmtCtx->streams[avpacket->stream_index]->time_base);
+            sFrame.timestamp = avframe->pts * m_dTimebase;
             av_frame_move_ref(sFrame.frame, avframe);
             
+            handleEnoughFrame();
             LOGW("[{}]decode frame: {:.3f}s size {}", avpacket->stream_index, sFrame.timestamp, m_pCFrame->size());
             m_pCFrame->push(sFrame);
             
@@ -61,4 +63,10 @@ void PlaybackDecodeVideo::Decode()
 
     av_packet_free(&avpacket);
     av_frame_free(&avframe);
+    LOGE("Decoding process finished");
+}
+
+void PlaybackDecodeVideo::handleEnoughFrame()
+{
+    m_pCFrame->waitFrame();
 }

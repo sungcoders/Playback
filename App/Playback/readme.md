@@ -27,3 +27,7 @@ cmakelist không trực tiếp build code của bạn mà nó sẽ đọc bản 
 sau đó nó sẽ tạo ra bản chỉ dẫn cho các công cụ build thực hiện (linux/macos makefile, window sln, công cụ hiện đại .ninja)
 cmake --build . => gọi các công cụ build rôi các công cụ build gọi trình biên dịch thành các file object và linker sẽ linker sẽ liên kết các file object lại với nhau.
 
+// condition
+demux (packet, decode)
+decode (packet, frame, output)
+output (frame)

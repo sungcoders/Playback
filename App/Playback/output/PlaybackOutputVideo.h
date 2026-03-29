@@ -14,7 +14,6 @@ public:
 
 private:
     std::shared_ptr<PlaybackFrame> m_pCFrame;
-    PlaybackMediator* mediator;
 };
 
 #endif // PLAYBACKOUTPUTVIDEO_H

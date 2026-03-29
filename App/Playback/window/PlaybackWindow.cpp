@@ -88,23 +88,11 @@ void PlaybackWindow::destroyWindow()
     SDL_Quit();
 }
 
-void PlaybackWindow::WindowEvent()
+void PlaybackWindow::WindowEvent(SDL_Event& eventType)
 {
     while (SDL_PollEvent(&event))
     {
         LOGI("-------------------- Received event: {} --------------------", event.type);
-        if (event.type == SDL_QUIT)
-        {
-            LOGI("Quit event received, exiting...");
-            return;
-        }
-        if (event.type == SDL_KEYDOWN)
-        {
-            if (event.key.keysym.sym == SDLK_q)
-            {
-                LOGI("Q key pressed, exiting...");
-                return;
-            }
-        }
+        eventType = event;
     }
 }

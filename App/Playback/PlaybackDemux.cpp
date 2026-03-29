@@ -1,18 +1,17 @@
 #include "PlaybackDemux.h"
 #include "PlaybackWindow.h"
 
-PlaybackDemux::PlaybackDemux()
-: m_bExit(false)
+PlaybackDemux::PlaybackDemux(std::shared_ptr<PlaybackDecodeVideo> decode)
+: m_pCdecode(decode)
+, m_bExit(false)
 , m_fmtCtx(nullptr)
+, m_codecCtx(nullptr)
 , m_idxvideoStream(-1)
 , m_idxaudioStream(-1)
 , m_dVideoTimeBase(0.0)
 , m_dAudioTimeBase(0.0)
-, m_codecCtx(nullptr)
-, m_codecPar(nullptr)
 , m_pCpacketVideo(nullptr)
 , m_pCpacketAudio(nullptr)
-, m_pCdecode(nullptr)
 {
 }
 
@@ -21,10 +20,18 @@ PlaybackDemux::~PlaybackDemux()
     demuxThread.join();
 }
 
-void PlaybackDemux::Start()
+void PlaybackDemux::Start(void)
 {
     LOGD("Starting demuxing process...");
     demuxThread = std::thread(&PlaybackDemux::Demux, this);
+}
+
+void PlaybackDemux::Stop(void)
+{
+    m_pCdecode->Stop();
+    m_pCpacketVideo->abortPacket();
+    m_pCpacketAudio->abortPacket();
+    m_bExit.store(true);
 }
 
 void PlaybackDemux::Init(const std::string& filename)
@@ -41,25 +48,23 @@ void PlaybackDemux::Init(const std::string& filename)
     m_dVideoTimeBase = av_q2d(m_fmtCtx->streams[m_idxvideoStream]->time_base);
     m_dAudioTimeBase = av_q2d(m_fmtCtx->streams[m_idxaudioStream]->time_base);
 
-    m_codecPar = m_fmtCtx->streams[m_idxvideoStream]->codecpar;
-    const AVCodec* codec = avcodec_find_decoder(m_codecPar->codec_id);
+    AVCodecParameters* codecPar = m_fmtCtx->streams[m_idxvideoStream]->codecpar;
+    const AVCodec* codec = avcodec_find_decoder(codecPar->codec_id);
     m_codecCtx = avcodec_alloc_context3(codec);
-    avcodec_parameters_to_context(m_codecCtx, m_codecPar);
+    avcodec_parameters_to_context(m_codecCtx, codecPar);
     avcodec_open2(m_codecCtx, codec, nullptr);
     av_dump_format(m_fmtCtx, 0, filename.c_str(), 0);
 }
 
-void PlaybackDemux::Demux()
+void PlaybackDemux::Demux(void)
 {
     AVPacket* packet = av_packet_alloc();
     m_pCpacketVideo = std::make_shared<PlaybackPacket>();
     m_pCpacketAudio = std::make_shared<PlaybackPacket>();
-    m_pCdecode = std::make_unique<PlaybackDecodeVideo>();
-    m_pCdecode->Init(m_codecCtx, m_fmtCtx, m_pCpacketVideo);
+    m_pCdecode->Init(m_codecCtx, m_dVideoTimeBase, m_pCpacketVideo);
     m_pCdecode->Start();
-    LOGD("Demux");
 
-    while (!m_bExit.load())
+    while(!m_bExit.load())
     {
         int ret = av_read_frame(m_fmtCtx, packet);
         if (ret < 0)
@@ -68,6 +73,7 @@ void PlaybackDemux::Demux()
         }
         else
         {
+            handleEnoughPacket(packet);
             pushPacketAV(packet);
             av_packet_unref(packet);
         }
@@ -89,10 +95,22 @@ void PlaybackDemux::pushPacketAV(AVPacket* avpacket)
     else if(avpacket->stream_index == m_idxaudioStream)
     {
         LOGD("push audio packet: {:.3f}s size {}", m_dAudioTimeBase * avpacket->pts, m_pCpacketAudio->size());
-        m_pCpacketAudio->push(avpacket);
+        // m_pCpacketAudio->push(avpacket);
     }
     else
     {
         LOGD("Unknown stream index: {} type {}", avpacket->stream_index, static_cast<int>(m_fmtCtx->streams[avpacket->stream_index]->codecpar->codec_type));
+    }
+}
+
+void PlaybackDemux::handleEnoughPacket(AVPacket* avpacket)
+{
+    if(avpacket->stream_index == m_idxvideoStream)
+    {
+        m_pCpacketVideo->waitPacket();
+    }
+    if(avpacket->stream_index == m_idxaudioStream)
+    {
+        m_pCpacketAudio->waitPacket();
     }
 }

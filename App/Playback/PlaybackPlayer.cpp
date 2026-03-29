@@ -3,97 +3,61 @@
 #include <windows.h>
 
 PlaybackPlayer::PlaybackPlayer()
-: m_bIsExit(true)
+: m_bIsExit(false)
 , m_pCdemux(nullptr)
+, m_pCdecode(nullptr)
 , m_pCFrame(nullptr)
 {
-    
 }
 
 PlaybackPlayer::~PlaybackPlayer()
 {
-    // inputThread.join();
-}
-
-void PlaybackPlayer::fwdFrameOut(std::shared_ptr<PlaybackFrame> MediaFrame)
-{
-    LOGI("Received frame in PlaybackPlayer");
-    m_pCFrame = MediaFrame;
+    outPutThread.join();
 }
 
 void PlaybackPlayer::start()
 {
-    m_pCdemux = std::make_unique<PlaybackDemux>();
-    if (m_pCdemux == nullptr)
+    m_pCFrame = std::make_shared<PlaybackFrame>();
+    m_pCdecode = std::make_shared<PlaybackDecodeVideo>(m_pCFrame);
+    m_pCdemux = std::make_unique<PlaybackDemux>(m_pCdecode);
+
+    if(m_pCdemux == nullptr || m_pCdecode == nullptr || m_pCFrame == nullptr)
     {
-        LOGE("Failed to create PlaybackDemux");
+        LOGE("Failed to start MediaPlayer");
         return;
     }
-    m_pCdemux->Init("D:/SLV/WorkSpace/App/Playback/Media/video.mp4");
-    m_pCdemux->Start();
-
-    // inputThread = std::thread(&PlaybackPlayer::inputLoop, this);
-    // outPutThread = std::thread(&PlaybackPlayer::outPutView, this);
-    LOGD("PlaybackPlayer started");
-}
-
-void PlaybackPlayer::stop()
-{
-}
-
-void PlaybackPlayer::inputLoop()
-{
-    std::string s;
-    while (m_bIsExit.load())
-    {
-        std::getline(std::cin, s);
-        if(s == "")
-        {
-            continue;
-        }
-        else if(s == "trigger")
-        {
-            LOGI("trigger event");
-        }
-        else if(s == "clear")
-        {
-            LOGI("reset event");
-        }
-        else if(s == "exit")
-        {
-            LOGI("Thoat");
-            m_bIsExit.store(false);
-            return;
-        }
-        else
-        {
-            LOGI("input = {}", s);
-            LOGI("errno = {}", errno);
-        }
-    }
-    LOGI("data = {}", errno);
+    PlayStart("D:/SLV/WorkSpace/App/Playback/Media/video.mp4");
 }
 
 void PlaybackPlayer::outPutView()
 {
-    // win.createWindow(1920, 1044);
-    while (m_bIsExit.load())
+    win.createWindow(1920, 1044);
+    while(!m_bIsExit.load())
     {
-        // win.WindowEvent();
-        if(m_pCFrame == nullptr)
-        {
-            LOGE("Frame queue is not initialized");
-            Sleep(500);
-            continue;
-        }
+        handleEvent();
         FrameInfo sFrame = {};
         m_pCFrame->pop(sFrame);
-
         LOGE("Display frame video: {:.3f}s", sFrame.timestamp);
-        // win.renderFrame(sFrame.frame);
-        // win.delay(33);
+        win.renderFrame(sFrame.frame);
+        win.delay(30);
 
         av_frame_free(&sFrame.frame);
+    }
+    LOGE("Outputing process finished");
+}
+
+void PlaybackPlayer::handleEvent()
+{
+    SDL_Event event;
+    win.WindowEvent(event);
+    switch (event.type)
+    {
+    case SDL_QUIT:
+        LOGI("Quit event received, exiting...");
+        PlayStop();
+        return;
+    case SDL_KEYDOWN:
+        LOGI("Key down event: {}", event.key.keysym.sym);
     }
 }
 
@@ -107,9 +71,12 @@ void PlaybackPlayer::SetConfig()
     // Code để thiết lập cấu hình phát video
 }
 
-void PlaybackPlayer::PlayStart()
+void PlaybackPlayer::PlayStart(std::string filename)
 {
-    // Code để bắt đầu phát video
+    m_pCdemux->Init(filename);
+    m_pCdemux->Start();
+    outPutThread = std::thread(&PlaybackPlayer::outPutView, this);
+    LOGD("PlaybackPlayer started");
 }
 
 void PlaybackPlayer::Pause()
@@ -119,6 +86,8 @@ void PlaybackPlayer::Pause()
 
 void PlaybackPlayer::PlayStop()
 {
-    // Code để dừng phát video
+    m_pCdemux->Stop();
+    win.destroyWindow();
+    m_bIsExit.store(true);
 }
 

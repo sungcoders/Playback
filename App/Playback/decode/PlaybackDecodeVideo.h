@@ -8,19 +8,22 @@
 class PlaybackDecodeVideo : public PlaybackDecode
 {
 public:
-    PlaybackDecodeVideo();
+    PlaybackDecodeVideo(std::shared_ptr<PlaybackFrame> frame);
     ~PlaybackDecodeVideo() = default;
 
-    void Init(AVCodecContext* codecCtx, AVFormatContext* fmtCtx, std::shared_ptr<PlaybackPacket> packet);
-    void Decode() override;
+    void Init(AVCodecContext* codecCtx, double timebase, std::shared_ptr<PlaybackPacket> packet);
+    void Stop();
 
 private:
+    std::atomic<bool> m_bExit;
     std::shared_ptr<PlaybackFrame> m_pCFrame;
     std::shared_ptr<PlaybackPacket> m_pCPacket;
-    AVFormatContext* m_fmtCtx;
+    double m_dTimebase;
     AVCodecContext* m_codecCtx;
-    std::unique_ptr<PlaybackOutputVideo> m_pCOutputVideo;
     std::thread decodeThread;
+
+    void Decode() override;
+    void handleEnoughFrame();
 };
 
 #endif // PLAYBACKDECODEVIDEO_H

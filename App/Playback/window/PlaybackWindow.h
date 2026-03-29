@@ -17,7 +17,7 @@ public:
     void delay(int ms);
     void destroyWindow();
 
-    void WindowEvent();
+    void WindowEvent(SDL_Event& eventType);
     
 private:
     SDL_Window* window = nullptr;

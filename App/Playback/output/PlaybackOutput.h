@@ -4,7 +4,6 @@
 #include "PlaybackPacket.h"
 #include <unistd.h>
 #include "PlaybackWindow.h"
-#include "PlaybackMediator.h"
 
 class PlaybackOutput
 {

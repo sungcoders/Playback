@@ -11,31 +11,30 @@ extern "C" {
 }
 
 #include "PlaybackDemux.h"
+#include "PlaybackDecodeVideo.h"
+#include "PlaybackOutputVideo.h"
 #include "PlaybackWindow.h"
 
-class PlaybackPlayer : public PlaybackMediator
+class PlaybackPlayer
 {
 public:
     PlaybackPlayer();
     ~PlaybackPlayer();
 
-    void start();   // start thread
-    void stop();    // stop thread
-
+    void start();
     void SetConfig();
     void SetPlayInfo();
-    void PlayStart();
+    void PlayStart(std::string filename);
     void Pause();
     void PlayStop();
 
-    void inputLoop();
     void outPutView();
-
-    void fwdFrameOut(std::shared_ptr<PlaybackFrame> MediaFrame) override;
+    void handleEvent();
 
 private:    
     std::atomic<bool> m_bIsExit;
     std::unique_ptr<PlaybackDemux> m_pCdemux;
+    std::shared_ptr<PlaybackDecodeVideo> m_pCdecode;
     std::shared_ptr<PlaybackFrame> m_pCFrame;
     std::thread inputThread;
     std::thread outPutThread;

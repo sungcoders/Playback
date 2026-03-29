@@ -28,6 +28,9 @@ public:
     void pop(FrameInfo& sFrame);
 
     int size();
+    void waitFrame();
+    void abortFrame();
+    void flushFrame();
 
 private:
     std::queue<FrameInfo> queue;
