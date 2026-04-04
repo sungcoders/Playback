@@ -36,6 +36,7 @@ set(SOURCES
     utils/PlaybackClock.cpp
     utils/UtilsWindow.cpp
     window/PlaybackWindow.cpp
+    window/WindowAudio.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -51,5 +52,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME}
     ${FFMPEG_LIBRARIES}
     ${SDL2_LIBRARIES}
+    swresample
     Utils
 )

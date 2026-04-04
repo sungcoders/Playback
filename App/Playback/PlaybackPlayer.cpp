@@ -5,8 +5,10 @@
 PlaybackPlayer::PlaybackPlayer()
 : m_bIsExit(false)
 , m_pCdemux(nullptr)
-, m_pCdecode(nullptr)
-, m_pCFrame(nullptr)
+, m_pCdecodeVideo(nullptr)
+, m_pCdecodeAudio(nullptr)
+, m_pCFrameVideo(nullptr)
+, m_pCFrameAudio(nullptr)
 , m_pCClock(nullptr)
 , m_ePlaybackState(PlaybackState::INIT_E)
 {
@@ -14,22 +16,25 @@ PlaybackPlayer::PlaybackPlayer()
 
 PlaybackPlayer::~PlaybackPlayer()
 {
-    outPutThread.join();
+    outPutThreadVideo.join();
+    outPutThreadAudio.join();
 }
 
 void PlaybackPlayer::start()
 {
-    m_pCFrame = std::make_shared<PlaybackFrame>();
+    m_pCFrameVideo = std::make_shared<PlaybackFrame>();
+    m_pCFrameAudio = std::make_shared<PlaybackFrame>();
     m_pCClock = std::make_shared<PlaybackClock>();
-    m_pCdecode = std::make_shared<PlaybackDecodeVideo>(m_pCFrame, m_pCClock);
-    m_pCdemux = std::make_unique<PlaybackDemux>(m_pCdecode, m_pCClock);
+    m_pCdecodeVideo = std::make_shared<PlaybackDecodeVideo>(m_pCFrameVideo, m_pCClock);
+    m_pCdecodeAudio = std::make_shared<PlaybackDecodeAudio>(m_pCFrameAudio, m_pCClock);
+    m_pCdemux = std::make_unique<PlaybackDemux>(m_pCdecodeVideo, m_pCdecodeAudio, m_pCClock);
 
-    if(m_pCdemux == nullptr || m_pCdecode == nullptr || m_pCFrame == nullptr)
+    if(m_pCdemux == nullptr || m_pCdecodeVideo == nullptr || m_pCFrameVideo == nullptr || m_pCFrameAudio == nullptr)
     {
         LOGE("Failed to start MediaPlayer");
         return;
     }
-    PlayStart("D:/SLV/WorkSpace/App/Playback/Media/mp4/video.mp4");
+    PlayStart("D:/SLV/WorkSpace/App/Playback/Media/mp4/video1.mp4");
 }
 
 void PlaybackPlayer::outPutView()
@@ -40,18 +45,39 @@ void PlaybackPlayer::outPutView()
         handleEvent();
         if(m_pCClock->isPaused())
         {
-            win.renderFrame(m_pCFrame->getLastFrame()->frame);
+            win.renderFrame(m_pCFrameVideo->getLastFrame()->frame);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
         FrameInfo sFrame = {};
-        m_pCFrame->pop(sFrame);
+        m_pCFrameVideo->pop(sFrame);
         // LOGE("Display frame video: {:.3f}s", sFrame.timestamp);
         win.renderFrame(sFrame.frame);
         win.delay(33);
         av_frame_free(&sFrame.frame);
     }
     LOGE("Outputing process finished");
+}
+
+void PlaybackPlayer::outPutAudio()
+{
+    WindowAudio audio;
+    // audio.audioInit(m_pCdecodeAudio->GetAudioCodecCtx());
+    while(!m_bIsExit.load())
+    {
+        // handleEvent();
+        // if(m_pCClock->isPaused())
+        // {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        //     continue;
+        // }
+        // FrameInfo sFrame = {};
+        // m_pCFrameAudio->pop(sFrame);
+        // LOGE("Display frame audio: {:.3f}s", sFrame.timestamp);
+        // audio.sendFrameOutput(sFrame.frame);
+        // av_frame_free(&sFrame.frame);
+    }
+    LOGE("Outputing audio process finished");
 }
 
 void PlaybackPlayer::handleEvent()
@@ -89,7 +115,8 @@ void PlaybackPlayer::PlayStart(std::string filename)
     m_ePlaybackState.store(PlaybackState::PLAY_E);
     m_pCdemux->Init(filename);
     m_pCdemux->Start();
-    outPutThread = std::thread(&PlaybackPlayer::outPutView, this);
+    outPutThreadVideo = std::thread(&PlaybackPlayer::outPutView, this);
+    outPutThreadAudio = std::thread(&PlaybackPlayer::outPutAudio, this);
     LOGD("PlaybackPlayer started");
 }
 

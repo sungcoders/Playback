@@ -7,11 +7,12 @@ extern "C" {
 
 #include "PlaybackPacket.h"
 #include "PlaybackDecodeVideo.h"
+#include "PlaybackDecodeAudio.h"
 
 class PlaybackDemux
 {
 public:
-    PlaybackDemux(std::shared_ptr<PlaybackDecodeVideo> decode, std::shared_ptr<PlaybackClock> clock);
+    PlaybackDemux(std::shared_ptr<PlaybackDecodeVideo> decodeVideo, std::shared_ptr<PlaybackDecodeAudio> decodeAudio, std::shared_ptr<PlaybackClock> clock);
     ~PlaybackDemux();
 
     void Init(const std::string& filename);
@@ -21,14 +22,16 @@ public:
 private:
     std::atomic<bool> m_bExit;
     AVFormatContext* m_fmtCtx;
-    AVCodecContext* m_codecCtx;
+    AVCodecContext* m_codecCtxVideo;
+    AVCodecContext* m_codecCtxAudio;
     int m_idxvideoStream;
     int m_idxaudioStream;
     double m_dVideoTimeBase;
     double m_dAudioTimeBase;
     std::shared_ptr<PlaybackPacket> m_pCpacketVideo;
     std::shared_ptr<PlaybackPacket> m_pCpacketAudio;
-    std::shared_ptr<PlaybackDecodeVideo> m_pCdecode;
+    std::shared_ptr<PlaybackDecodeVideo> m_pCdecodeVideo;
+    std::shared_ptr<PlaybackDecodeAudio> m_pCdecodeAudio;
     std::shared_ptr<PlaybackClock> m_pCClock;
     std::thread demuxThread;
 

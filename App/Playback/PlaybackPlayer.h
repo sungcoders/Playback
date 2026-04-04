@@ -12,9 +12,11 @@ extern "C" {
 
 #include "PlaybackDemux.h"
 #include "PlaybackClock.h"
+#include "PlaybackDecodeAudio.h"
 #include "PlaybackDecodeVideo.h"
 #include "PlaybackOutputVideo.h"
 #include "PlaybackWindow.h"
+#include "WindowAudio.h"
 
 class PlaybackPlayer
 {
@@ -32,6 +34,7 @@ public:
     void PlayStop();
 
     void outPutView();
+    void outPutAudio();
     void handleEvent();
 
 private:
@@ -46,12 +49,15 @@ private:
 
     std::atomic<bool> m_bIsExit;
     std::unique_ptr<PlaybackDemux> m_pCdemux;
-    std::shared_ptr<PlaybackDecodeVideo> m_pCdecode;
-    std::shared_ptr<PlaybackFrame> m_pCFrame;
+    std::shared_ptr<PlaybackDecodeVideo> m_pCdecodeVideo;
+    std::shared_ptr<PlaybackDecodeAudio> m_pCdecodeAudio;
+    std::shared_ptr<PlaybackFrame> m_pCFrameVideo;
+    std::shared_ptr<PlaybackFrame> m_pCFrameAudio;
     std::shared_ptr<PlaybackClock> m_pCClock;
     std::atomic<PlaybackState> m_ePlaybackState;
     std::thread inputThread;
-    std::thread outPutThread;
+    std::thread outPutThreadVideo;
+    std::thread outPutThreadAudio;
     PlaybackWindow win;
 
 };

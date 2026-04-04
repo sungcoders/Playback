@@ -69,7 +69,7 @@ void PlaybackDecodeVideo::Decode()
 
     av_packet_free(&avpacket);
     av_frame_free(&avframe);
-    LOGE("Decoding process finished");
+    LOGE("Decoding video process finished");
 }
 
 void PlaybackDecodeVideo::handleEnoughFrame()
