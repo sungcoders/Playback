@@ -19,11 +19,15 @@ void PlaybackOutputAudio::Init(AVCodecContext* codecCtx, std::shared_ptr<Playbac
     audio.audioInit(m_codecCtx);
 }
 
+void PlaybackOutputAudio::Stop()
+{
+    m_bIsExit.store(true);
+}
+
 void PlaybackOutputAudio::Output()
 {
     while(!m_bIsExit.load())
     {
-        // handleEvent();
         if(m_pCClock->isPaused())
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -31,7 +35,7 @@ void PlaybackOutputAudio::Output()
         }
         FrameInfo sFrame = {};
         m_pCFrame->pop(sFrame);
-        LOGE("Display frame audio: {:.3f}s", sFrame.timestamp);
+        // LOGE("Output frame audio: {:.3f}s", sFrame.timestamp);
         audio.sendFrameOutput(sFrame.frame);
         av_frame_free(&sFrame.frame);
     }

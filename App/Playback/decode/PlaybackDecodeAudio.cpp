@@ -1,9 +1,8 @@
 #include "PlaybackDecodeAudio.h"
 
-PlaybackDecodeAudio::PlaybackDecodeAudio(std::shared_ptr<PlaybackFrame> frame, std::shared_ptr<PlaybackClock> clock)
+PlaybackDecodeAudio::PlaybackDecodeAudio(std::shared_ptr<PlaybackClock> clock)
 : m_bExit(false)
 , m_pCPacket(nullptr)
-, m_pCFrame(frame)
 , m_pCClock(clock)
 , m_pCOutputAudio(nullptr)
 , m_dTimebase(0.0)
@@ -20,11 +19,15 @@ void PlaybackDecodeAudio::Init(AVCodecContext* codecCtx, double timebase, std::s
     this->m_codecCtx = codecCtx;
     this->m_dTimebase = timebase;
     this->m_pCPacket = packet;
+    
+    m_pCFrame = std::make_shared<PlaybackFrame>();
+    m_pCOutputAudio = std::make_unique<PlaybackOutputAudio>();
     LOGW("Audio decode thread started");
 }
 
 void PlaybackDecodeAudio::Stop()
 {
+    m_pCOutputAudio->Stop();
     m_pCFrame->abortFrame();
     m_bExit.store(true);
 }
@@ -33,7 +36,6 @@ void PlaybackDecodeAudio::Decode()
 {
     AVPacket* avpacket = av_packet_alloc();
     AVFrame* avframe = av_frame_alloc();
-    m_pCOutputAudio = std::make_unique<PlaybackOutputAudio>();
     m_pCOutputAudio->Init(m_codecCtx, m_pCClock, m_pCFrame);
     m_pCOutputAudio->Start();
 

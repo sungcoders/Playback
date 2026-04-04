@@ -9,7 +9,7 @@ class PlaybackOutput
 {
 public:
     PlaybackOutput();
-    ~PlaybackOutput() = default;
+    ~PlaybackOutput();
 
     void Start();
     virtual void Output() = 0;

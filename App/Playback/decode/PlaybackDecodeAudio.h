@@ -7,14 +7,12 @@
 class PlaybackDecodeAudio: public PlaybackDecode
 {
 public:
-    PlaybackDecodeAudio(std::shared_ptr<PlaybackFrame> frame, std::shared_ptr<PlaybackClock> clock);
+    PlaybackDecodeAudio(std::shared_ptr<PlaybackClock> clock);
     ~PlaybackDecodeAudio();
 
     void Init(AVCodecContext* codecCtx, double timebase, std::shared_ptr<PlaybackPacket> packet);
     void Stop();
     void Decode() override;
-    AVCodecContext* GetAudioCodecCtx() {  return m_codecCtx; }
-
 
 private:
     std::atomic<bool> m_bExit;

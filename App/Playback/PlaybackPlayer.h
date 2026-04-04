@@ -34,7 +34,6 @@ public:
     void PlayStop();
 
     void outPutView();
-    void outPutAudio();
     void handleEvent();
 
 private:
@@ -52,12 +51,10 @@ private:
     std::shared_ptr<PlaybackDecodeVideo> m_pCdecodeVideo;
     std::shared_ptr<PlaybackDecodeAudio> m_pCdecodeAudio;
     std::shared_ptr<PlaybackFrame> m_pCFrameVideo;
-    std::shared_ptr<PlaybackFrame> m_pCFrameAudio;
     std::shared_ptr<PlaybackClock> m_pCClock;
     std::atomic<PlaybackState> m_ePlaybackState;
     std::thread inputThread;
     std::thread outPutThreadVideo;
-    std::thread outPutThreadAudio;
     PlaybackWindow win;
 
 };

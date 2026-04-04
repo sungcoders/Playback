@@ -6,6 +6,11 @@ PlaybackOutput::PlaybackOutput()
     m_pCFrame = std::make_shared<PlaybackFrame>();
 }
 
+PlaybackOutput::~PlaybackOutput()
+{
+    outputThread.join();
+}
+
 void PlaybackOutput::Start()
 {
     LOGE("Playback output thread started");

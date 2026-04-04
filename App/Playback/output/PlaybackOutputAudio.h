@@ -13,6 +13,7 @@ public:
     ~PlaybackOutputAudio();
 
     void Init(AVCodecContext* codecCtx, std::shared_ptr<PlaybackClock> clock, std::shared_ptr<PlaybackFrame> frame);
+    void Stop();
     void Output() override;
 
 private:
